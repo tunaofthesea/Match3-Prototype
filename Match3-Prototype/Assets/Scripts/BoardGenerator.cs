@@ -248,11 +248,11 @@ public class BoardGenerator : MonoBehaviour
                 int y = drop.GetComponent<Drop>().dropY;
 
                 DropMatrice[x, y] = null;
-
+                /*
                 if (y + 1 < rows && DropMatrice[x, y + 1] != null)
                 {
                     DropTile(DropMatrice[x, y + 1].GetComponent<Drop>());
-                }
+                }*/
             }
             return true;
         }

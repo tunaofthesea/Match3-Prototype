@@ -23,7 +23,7 @@ public class Tile : MonoBehaviour
         isEmpty = true;
         if(spawner && !TouchContoller.instance.interactionActivated)
         {
-            BoardGenerator.instance.PlaceDropOnTile(GetComponent<Tile>());
+            //BoardGenerator.instance.PlaceDropOnTile(GetComponent<Tile>());
         }
     }
 
