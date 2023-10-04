@@ -174,7 +174,7 @@ public class BoardGenerator : MonoBehaviour
     {
         for (int i = 0; i < DropsOnBoard.Count; i++)
         {
-            Debug.Log(i);
+            //Debug.Log(i);
             DropMatrice[DropsOnBoard[i].GetComponent<Drop>().dropX, DropsOnBoard[i].GetComponent<Drop>().dropY] = DropsOnBoard[i];
         }
     }
