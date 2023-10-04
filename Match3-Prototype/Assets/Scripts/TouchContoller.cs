@@ -36,7 +36,7 @@ public class TouchContoller : MonoBehaviour
 
     void Update()
     {
-        if (interactionActivated) return
+        if (interactionActivated) return;
 
         if (Input.GetMouseButtonDown(0)) // Detects touch input.
         {
@@ -60,27 +60,27 @@ public class TouchContoller : MonoBehaviour
             Vector2 swipeDirection = finalTouchPos - initialTouchPos;
 
             swipeDirection.Normalize();  // I would like to see the distance as a unit vector
-            char dir = '';
+
 
             // assume vertical
-            char dir = swipeDirection.y > 0 ? 'u' : 'd'
+            char dir = swipeDirection.y > 0 ? 'u' : 'd';
             // Compares the magnitudes of x and y and chooses the best swipe direction
             if (Mathf.Abs(swipeDirection.x) > Mathf.Abs(swipeDirection.y))
-                char dir = swipeDirection.x > 0 ? 'r' : 'l' // if wrong update
+                dir = swipeDirection.x > 0 ? 'r' : 'l'; // if wrong update
 
 
             Debug.Log("Swipe " + dir);
             SwapNeighbor(dir);
         }
-
+    }
         public void SwapNeighbor(char c)
         {
             int x, y;
             BoardGenerator board = BoardGenerator.instance;
             GameObject neighbor;
 
-            int horizontal = int(c == 'r') - int(c == 'l');
-            int vertical = int(c == 'u') - int(c == 'd');
+            int horizontal = Convert.ToInt16((c == 'r')) - Convert.ToInt16((c == 'l'));
+            int vertical = Convert.ToInt16((c == 'u')) - Convert.ToInt16((c == 'd'));
 
 
             x = selectedObject.GetComponent<Drop>().dropX + horizontal;
@@ -93,7 +93,7 @@ public class TouchContoller : MonoBehaviour
             catch (IndexOutOfRangeException e)
             {
                 Debug.Log("Caught exception: " + e.Message);
-                break;
+                return;
             }
             if (board.DropMatrice[x, y] == null) return;
 
