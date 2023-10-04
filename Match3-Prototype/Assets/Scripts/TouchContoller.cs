@@ -73,115 +73,34 @@ public class TouchContoller : MonoBehaviour
 
     public void SwapNeighbor(char c)
     {
-        int x, y;
         BoardGenerator board = BoardGenerator.instance;
         GameObject neighbor;
 
-        switch (c)
+        int horizontal = Convert.ToInt16((c == 'r')) - Convert.ToInt16((c == 'l'));
+        int vertical = Convert.ToInt16((c == 'u')) - Convert.ToInt16((c == 'd'));
+
+        Drop d = selectedObject.GetComponent<Drop>();
+        int x, y = d.drop.X + horizontal, d.dropY + vertical
+
+        try
         {
-            case 'r':
-                x = selectedObject.GetComponent<Drop>().dropX + 1;
-                y = selectedObject.GetComponent<Drop>().dropY;
-
-                try
-                {
-                    GameObject value = board.DropMatrice[x, y];
-                }
-                catch (IndexOutOfRangeException e)
-                {
-                    Debug.Log("Caught exception: " + e.Message);
-                    break;
-                }
-                if (board.DropMatrice[x, y] == null)
-                {
-                    break;
-                }
-                neighbor = board.DropMatrice[x, y];
-
-                TrySwap(board, selectedObject, neighbor, x, y, x - 1, y);
-
-                //board.RelocateChangedDrops(selectedObject, x, y);
-                //board.RelocateChangedDrops(neighbor, x - 1, y);
-
-                break;
-
-            case 'l':
-                x = selectedObject.GetComponent<Drop>().dropX - 1;
-                y = selectedObject.GetComponent<Drop>().dropY;
-                try
-                {
-                    GameObject value = board.DropMatrice[x, y];
-                }
-                catch (IndexOutOfRangeException e)
-                {
-                    Debug.Log("Caught exception: " + e.Message);
-                    break;
-                }
-                if (board.DropMatrice[x, y] == null)
-                {
-                    break;
-                }
-                neighbor = board.DropMatrice[x, y];
-
-                TrySwap(board, selectedObject, neighbor, x, y, x + 1, y);
-
-                //board.RelocateChangedDrops(selectedObject, x, y);
-                //board.RelocateChangedDrops(neighbor, x + 1, y);
-
-                break;
-
-            case 'u':
-                x = selectedObject.GetComponent<Drop>().dropX;
-                y = selectedObject.GetComponent<Drop>().dropY + 1;
-
-                try
-                {
-                    GameObject value = board.DropMatrice[x, y];
-                }
-                catch (IndexOutOfRangeException e)
-                {
-                    Debug.Log("Caught exception: " + e.Message);
-                    break;
-                }
-                if (board.DropMatrice[x, y] == null)
-                {
-                    break;
-                }
-                neighbor = board.DropMatrice[x, y];
-
-                TrySwap(board, selectedObject, neighbor, x, y, x, y - 1);
-
-                //board.RelocateChangedDrops(selectedObject, x, y);
-                //board.RelocateChangedDrops(neighbor, x, y - 1);
-
-                break;
-
-            case 'd':
-                x = selectedObject.GetComponent<Drop>().dropX;
-                y = selectedObject.GetComponent<Drop>().dropY - 1;
-
-                try
-                {
-                    GameObject value = board.DropMatrice[x, y];
-                }
-                catch (IndexOutOfRangeException e)
-                {
-                    Debug.Log("Caught exception: " + e.Message);
-                    break;
-                }
-                if (board.DropMatrice[x, y] == null)
-                {
-                    break;
-                }
-                neighbor = board.DropMatrice[x, y];
-
-                TrySwap(board, selectedObject, neighbor, x, y, x, y + 1);
-
-                //board.RelocateChangedDrops(selectedObject, x, y);
-                //board.RelocateChangedDrops(neighbor, x, y + 1);
-
-                break;
+            GameObject value = board.DropMatrice[x, y];
         }
+        catch (IndexOutOfRangeException e)
+        {
+            Debug.Log("Caught exception: " + e.Message);
+            return;
+        }
+        if (board.DropMatrice[x, y] == null) return;
+
+        // check this
+        neighbor = board.DropMatrice[x, y];
+
+        TrySwap(board, selectedObject, neighbor, x, y, x - horizontal, y - vertical);
+
+        //board.RelocateChangedDrops(selectedObject, x, y);
+        //board.RelocateChangedDrops(neighbor, x - 1, y);
+
     }
 
 
