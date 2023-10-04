@@ -123,10 +123,7 @@ public class TouchContoller : MonoBehaviour
         // check this
         neighbor = board.DropMatrice[x, y];
 
-        if (horizontal != 0)
-            TrySwap(board, selectedObject, neighbor, x, y, x - horizontal, y);
-        else
-            TrySwap(board, selectedObject, neighbor, x, y, x, y - vertical);
+        TrySwap(board, selectedObject, neighbor, x, y, x - horizontal, y - vertical);
 
         //board.RelocateChangedDrops(selectedObject, x, y);
         //board.RelocateChangedDrops(neighbor, x - 1, y);
