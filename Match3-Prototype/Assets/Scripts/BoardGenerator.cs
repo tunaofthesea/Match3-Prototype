@@ -112,7 +112,7 @@ public class BoardGenerator : MonoBehaviour
         if(dropNumber < rows * columns)
         {
             Debug.LogError("Warning, you have entered a number smaller than the size of the board matrice");
-            dropNumber = rows * columns + 15;
+            dropNumber = rows * columns + (rows + columns);
         }
 
         Vector3 tempPos = OutsideTopPosition();
@@ -252,7 +252,8 @@ public class BoardGenerator : MonoBehaviour
                 if (y + 1 < rows && DropMatrice[x, y + 1] != null)
                 {
                     DropTile(DropMatrice[x, y + 1].GetComponent<Drop>());
-                }*/
+                }
+                */
             }
             return true;
         }
