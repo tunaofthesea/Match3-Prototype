@@ -43,16 +43,14 @@ public class TouchContoller : MonoBehaviour
                 Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero, Mathf.Infinity, clickableLayer);
 
-                if (hit.collider != null)  // Touch object detected and initial touch position is saved.
-                {
-                    Debug.Log("Clicked on " + hit.collider.gameObject.name);
-                    selectedObject = hit.collider.gameObject;
-                    initialTouchPos = hit.point;
-                }
-                else
+                if (hit.collider == null)  // Touch object detected and initial touch position is saved.
                 {
                     Debug.Log("No objects detected.");
+                    return;
                 }
+                Debug.Log("Clicked on " + hit.collider.gameObject.name);
+                selectedObject = hit.collider.gameObject;
+                initialTouchPos = hit.point;
             }
 
             else if (Input.GetMouseButtonUp(0))
@@ -63,35 +61,12 @@ public class TouchContoller : MonoBehaviour
 
                 swipeDirection.Normalize();  // I would like to see the distance as a unit vector
 
-                if (Mathf.Abs(swipeDirection.x) > Mathf.Abs(swipeDirection.y))  // Compares the magnitudes of x and y and chooses the best swipe direction
-                {
+                // assume it is vertical at first
+                char dir = swipeDirection.y > 0 ? 'u' ; 'd';
 
-                    if (swipeDirection.x > 0)
-                    {
-                        Debug.Log("Swipe Right");
-                        SwapNeighbor('r');
-                    }
-
-                    else
-                    {
-                        Debug.Log("Swipe Left");
-                        SwapNeighbor('l');
-                    }
-                }
-                else
-                {
-
-                    if (swipeDirection.y > 0)
-                    {
-                        Debug.Log("Swipe Up");
-                        SwapNeighbor('u');
-                    }
-                    else
-                    {
-                        Debug.Log("Swipe Down");
-                        SwapNeighbor('d');
-                    }
-                }
+                // Compares the magnitudes of x and y and chooses the best swipe direction
+                if (Mathf.Abs(swipeDirection.x) > Mathf.Abs(swipeDirection.y))
+                    dir = swipeDirection.x > 0 ? 'r' ; 'l'; //change if horizontal instead
             }
         }
     }
@@ -236,7 +211,7 @@ public class TouchContoller : MonoBehaviour
             neighbor.transform.position = Vector2.MoveTowards(neighbor.transform.position, initialPos, Time.deltaTime * SwapSpeed);
             selected.transform.position = Vector2.MoveTowards(selected.transform.position, neighborPos, Time.deltaTime * SwapSpeed);
 
-            if(Vector2.Distance(neighbor.transform.position, initialPos) < 0.05f)
+            if (Vector2.Distance(neighbor.transform.position, initialPos) < 0.05f)
             {
                 neighbor.transform.position = initialPos;
                 selected.transform.position = neighborPos;
@@ -252,7 +227,8 @@ public class TouchContoller : MonoBehaviour
         BoardGenerator.instance.RelocateChangedDrops(selectedObject, x, y);
         BoardGenerator.instance.RelocateChangedDrops(neighbor, relocateX, relocateY);
 
-        if (!BoardGenerator.instance.CheckMatches())  // If checkMatch bool function returns false, it means there are no matches so, we revert back the change we did in the DropMatrice
+        // If checkMatch bool function returns false, it means there are no matches so, we revert back the change we did in the DropMatrice
+        if (!BoardGenerator.instance.CheckMatches())
         {
             BoardGenerator.instance.RelocateChangedDrops(neighbor, x, y);
             BoardGenerator.instance.RelocateChangedDrops(selectedObject, relocateX, relocateY);
@@ -278,14 +254,6 @@ public class TouchContoller : MonoBehaviour
             selectedObject.GetComponent<Drop>().selectedSpriteObject.GetComponent<SpriteRenderer>().sortingOrder = 1;
             neighbor.GetComponent<Drop>().selectedSpriteObject.GetComponent<SpriteRenderer>().sortingOrder = 1;
         }
-
-        else
-        {
-            //BoardGenerator.instance.CheckGenTiles();
-        }
-
-        //selectedObject.GetComponent<Collider2D>().enabled = false;
-        //neighbor.GetComponent<Collider2D>().enabled = false;
 
         interactionActivated = false;
 
