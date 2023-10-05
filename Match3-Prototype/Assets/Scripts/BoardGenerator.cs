@@ -11,25 +11,24 @@ public class BoardGenerator : MonoBehaviour
     public int rows;
     public int columns;
     public int dropNumber;
+    public int minMatchingLength = 3;
 
     public GameObject tilePrefab;
     public GameObject dropPrefab;
 
-    private List<GameObject> Tiles = new List<GameObject>();
     public List<GameObject> GenerativeTiles = new List<GameObject>();
 
     public List<GameObject> DropsOnBoard = new List<GameObject>();
-
-    private GameObject boardParent;
-    private GameObject dropPool;
-
     public GameObject[,] DropMatrice;
     public int selectedX, selectedY;
 
     public static BoardGenerator instance;
     public GameObject platformCollider;
 
-    public float dropSpeed;
+    private List<GameObject> Tiles = new List<GameObject>();
+    private GameObject boardParent;
+    private GameObject dropPool;
+    private float waitFor = 0.01f;
 
     private void Awake()
     {
@@ -64,6 +63,7 @@ public class BoardGenerator : MonoBehaviour
         {
             for (int j = 0; j < columns; j++)
             {
+                // flattening should have its own method
                 Vector2 tilePos = new Vector2(startX + (j * tileWidth), startY + (i * tileWidth));
                 GameObject tile = Instantiate(tilePrefab, tilePos, Quaternion.identity);
                 tile.transform.parent = boardParent.transform;
@@ -87,35 +87,35 @@ public class BoardGenerator : MonoBehaviour
                 GameObject tile = Instantiate(tilePrefab, tilePos, Quaternion.identity);
 
                 tile.name = "Tile (" + j + ", " + i + ")";
-                tile.GetComponent<Tile>().tileX = j;
-                tile.GetComponent<Tile>().tileY = i;
-                if(i == rows)
+                tile.GetComponent<Tile>().x = j;
+                tile.GetComponent<Tile>().y = i;
+                // this can be moved out of this loop and have its own loop
+                if (i == rows)
                 {
                     tile.GetComponent<Tile>().spawner = true;
                     GenerativeTiles.Add(tile);
                 }
                 Tiles.Add(tile);
                 tile.transform.parent = boardParent.transform;
-                yield return new WaitForSeconds(0.01f);
+                // these configuration values should have their own variables
+                yield return new WaitForSeconds(this.waitFor);
             }
-            yield return new WaitForSeconds(0.01f);
+            yield return new WaitForSeconds(this.waitFor);
         }
+
         platformCollider.transform.parent = Tiles[columns / 2].transform;
         platformCollider.transform.localPosition = Vector2.zero;
 
         StartCoroutine(PlaceDrops_cor());
     }
-    
-    
+
     public void GenerateDrops()
     {
         dropPool = new GameObject("Drop Pool");
-
-        if(dropNumber < rows * columns)
-        {
-            Debug.LogError("Warning, you have entered a number smaller than the size of the board matrice");
-            dropNumber = rows * columns + (rows + columns);
-        }
+        // worst case scenario where both swipes land a matching 'trident' 
+        // e.g. when LR is swiped to RL -> there will minMatchingLength*3 - 2 matching tiles (-2 because we counted more) 
+        // another way to think about it -> 3*(minMatchingLength-1)+1
+        dropNumber = minMatchingLength * 6 - 4;
 
         Vector3 tempPos = OutsideTopPosition();
 
@@ -129,7 +129,8 @@ public class BoardGenerator : MonoBehaviour
 
     Vector3 OutsideTopPosition()
     {
-        Vector3 screenPos = new Vector3(Screen.width / 2, Screen.height, -Camera.main.transform.position.z);  // Object pool should not be spawned on the screen boundaries. 
+        // Object pool should not be spawned on the screen boundaries. 
+        Vector3 screenPos = new Vector3(Screen.width / 2, Screen.height, -Camera.main.transform.position.z);
         Vector3 worldPos = Camera.main.ScreenToWorldPoint(screenPos);
         Vector3 tempPos = worldPos + new Vector3(0, 10, 0);
 
@@ -161,7 +162,7 @@ public class BoardGenerator : MonoBehaviour
         go.GetComponent<Collider2D>().enabled = true;
 
         return go;
-        
+
     }
 
     public void CheckGenTiles()
@@ -177,10 +178,12 @@ public class BoardGenerator : MonoBehaviour
 
     public void AssignBoardDimensions()
     {
+        Drop d;
         for (int i = 0; i < DropsOnBoard.Count; i++)
         {
-            //Debug.Log(i);
-            DropMatrice[DropsOnBoard[i].GetComponent<Drop>().dropX, DropsOnBoard[i].GetComponent<Drop>().dropY] = DropsOnBoard[i];
+            Debug.Log(i);
+            d = DropsOnBoard[i].GetComponent<Drop>();
+            DropMatrice[d.x, d.y] = DropsOnBoard[i];
         }
     }
 
@@ -189,115 +192,62 @@ public class BoardGenerator : MonoBehaviour
         DropMatrice[x, y] = drop;
     }
 
-    public bool CheckMatches()
+    public list<GameObject> CheckMatchesAt(int row, int col)
     {
         List<GameObject> toDestroy = new List<GameObject>();
-        // Checks rows
-        for (int row = 0; row < columns; row++)
+        // Check vertical 
+        // go left
+        int l, r = col, col;
+        // move left as long as the left tile is the same as that of original position 
+        while (l > 0 && DropMatrice[row, l - 1] != null && DropMatrice[row, col].tag == DropMatrice[row, l - 1].tag)
         {
-            int count = 1;
-            for (int col = 1; col < rows; col++)
-            {
-                if ((DropMatrice[row, col] != null && DropMatrice[row, col - 1] != null) && DropMatrice[row, col].tag == DropMatrice[row, col - 1].tag)
-                {
-                    count++;
-                    if (count >= 3)
-                    {
-                        for (int j = col; j > col - count; j--)
-                        {
-                            toDestroy.Add(DropMatrice[row, j]);
-                        }
-                    }
-                }
-                else
-                {
-                    count = 1;
-                }
-            }
+            l--;
+            toDestroy.Add(DropMatrice[row, l]);
         }
-
-        // Checks columns
-        for (int col = 0; col < rows; col++)
+        // move left as long as the right tile is the same as that of original position 
+        while (r < columns - 1 && DropMatrice[row, r + 1] != null && DropMatrice[row, col].tag == DropMatrice[row, r + 1].tag)
         {
-            int count = 1;
-            for (int row = 1; row < columns; row++)
-            {
-                if ((DropMatrice[row, col] != null && DropMatrice[row - 1, col] != null) && DropMatrice[row, col].tag == DropMatrice[row - 1, col].tag)
-                {
-                    count++;
-                    if (count >= 3)
-                    {
-                        for (int i = row; i > row - count; i--)
-                        {
-                            toDestroy.Add(DropMatrice[i, col]);
-                        }
-                    }
-                }
-                else
-                {
-                    count = 1;
-                }
-            }
+            r++;
+            toDestroy.Add(DropMatrice[row, r]);
         }
-
-        if (toDestroy.Count > 0)
+        int u, d = row, row;
+        // move up as long as the upper tile is the same as that of original position 
+        while (u > rows - 1 && DropMatrice[u - 1, col] != null && DropMatrice[row, col].tag == DropMatrice[u + 1, col].tag)
         {
-            // Returns the used drops back into the object pool
-            foreach (GameObject drop in toDestroy)
-            {
-                drop.transform.parent = dropPool.transform;
-                drop.transform.position = OutsideTopPosition();
-
-                // Coment this changes the pop wont work
-                int x = drop.GetComponent<Drop>().dropX;
-                int y = drop.GetComponent<Drop>().dropY;
-
-                DropMatrice[x, y] = null;
-                /*
-                if (y + 1 < rows && DropMatrice[x, y + 1] != null)
-                {
-                    DropTile(DropMatrice[x, y + 1].GetComponent<Drop>());
-                }
-                */
-            }
-            return true;
+            u++;
+            toDestroy.Add(DropMatrice[u, col]);
         }
-        else
+        // move down as long as the below tile is the same as that of original position 
+        while (d > 0 && DropMatrice[d - 1, col] != null && DropMatrice[row, col].tag == DropMatrice[d - 1, col].tag)
         {
-            return false;
+            d++;
+            toDestroy.Add(DropMatrice[d, col]);
         }
-
+        return toDestroy;
     }
-    
-    /*
-    public void DropTile(Drop drop)
+
+    public void ReturnDropsBackToPool(List<GameObject> toDestroy)
     {
-        int summary = drop.dropX + drop.dropY + 1 - columns;  // 1 tile below
-        if (DropMatrice[drop.dropX, drop.dropY - 1] == null)
+        // Returns the used drops back into the object pool
+        foreach (GameObject drop in toDestroy)
         {
-            StartCoroutine(MoveDrop_cor(drop.gameObject, summary));
+            drop.transform.parent = dropPool.transform;
+            drop.transform.position = OutsideTopPosition();
+            Drop d = drop.GetComponent<Drop>();
+            // Coment this changes the pop wont work
+            int x = d.x;
+            int y = d.y;
+
+            DropMatrice[x, y] = null;
+            /*
+            if (y + 1 < rows && DropMatrice[x, y + 1] != null)
+            {
+                DropTile(DropMatrice[x, y + 1].GetComponent<Drop>());
+            }*/
         }
     }
 
-    IEnumerator MoveDrop_cor(GameObject dropGo, int summary)
-    {
-        dropGo.GetComponent<Collider2D>().enabled = false;
-        while(true)
-        {
-            dropGo.transform.position = Vector2.MoveTowards(dropGo.transform.position, Tiles[summary].transform.position, Time.deltaTime);
-            yield return null;
-        }
-    }
 
-    public IEnumerator moveDropNextTile()
-    {
-        for (int i = 0; i < columns; i++)
-        {
-
-            yield return null;
-        }
-    }
-    */
     public void TileCheck(int x, int y)
     {
         for (int i = 1; i < rows - (y + 1); i++)
@@ -323,8 +273,6 @@ public class BoardGenerator : MonoBehaviour
         drop.transform.position = transform.position;
 
     }
-
-
 
 }
 
