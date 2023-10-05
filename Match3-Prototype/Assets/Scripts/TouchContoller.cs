@@ -7,8 +7,6 @@ using static UnityEngine.RuleTile.TilingRuleOutput;
 
 public class TouchContoller : MonoBehaviour
 {
-    private Vector2 initialTouchPos;
-    private Vector2 finalTouchPos;
     public GameObject selectedObject;
 
     public LayerMask clickableLayer;
@@ -18,7 +16,8 @@ public class TouchContoller : MonoBehaviour
     public float SwapSpeed;
 
     public static TouchContoller instance;
-
+    private Vector2 initialTouchPos;
+    private Vector2 finalTouchPos;
 
     private void Awake()
     {
@@ -130,6 +129,7 @@ public class TouchContoller : MonoBehaviour
             neighbor.transform.position = Vector2.MoveTowards(neighbor.transform.position, initialPos, Time.deltaTime * SwapSpeed);
             selected.transform.position = Vector2.MoveTowards(selected.transform.position, neighborPos, Time.deltaTime * SwapSpeed);
 
+            // 0.05f can be another variable 
             if (Vector2.Distance(neighbor.transform.position, initialPos) < 0.05f)
             {
                 neighbor.transform.position = initialPos;
@@ -160,6 +160,7 @@ public class TouchContoller : MonoBehaviour
                 neighbor.transform.position = Vector2.MoveTowards(neighbor.transform.position, neighborPos, Time.deltaTime * SwapSpeed);
                 selected.transform.position = Vector2.MoveTowards(selected.transform.position, initialPos, Time.deltaTime * SwapSpeed);
 
+                // 0.05f can be another variable 
                 if (Vector2.Distance(neighbor.transform.position, neighborPos) < 0.05f)
                 {
                     neighbor.transform.position = neighborPos;
