@@ -30,6 +30,11 @@ public class Drop : MonoBehaviour
             case 3:
                 this.tag = "Green";
                 break;
+            // handle the cases where it is not in the cases
+            default:
+                this.tag = "Green";
+                break;
+
         }
     }
     public void OnDisable()
@@ -38,20 +43,14 @@ public class Drop : MonoBehaviour
         {
             sprites[i].SetActive(false);
         }
-        
+
     }
 
     public void ChooseSprite(int index)
     {
-        for (int i = 0; i < sprites.Length; i++)
-        {
-            if(i == index)
-            {
-                ColorIndex = index;
-                sprites[i].SetActive(true);
-                break;
-            }
-        }
+        if (index < 0 || index >= sprites.Length) return;
+        ColorIndex = index;
+        sprites[i].SetActive(true);
     }
 
     public void MoveTowardsTarget(Vector2 target)
@@ -61,17 +60,17 @@ public class Drop : MonoBehaviour
 
     IEnumerator MoveTowardsTarget_cor(Vector2 targetPosition)
     {
-        while(true)
+        while (true)
         {
-            
+
             yield return null;
         }
     }
 
 
-        
-        
-        
-        
+
+
+
+
 
 }
