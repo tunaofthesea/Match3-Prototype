@@ -80,7 +80,7 @@ public class TouchContoller : MonoBehaviour
         int vertical = Convert.ToInt16((c == 'u')) - Convert.ToInt16((c == 'd'));
 
         Drop d = selectedObject.GetComponent<Drop>();
-        int x, y = d.drop.X + horizontal, d.dropY + vertical
+        int x, y = d.x + horizontal, d.y + vertical
 
         try
         {

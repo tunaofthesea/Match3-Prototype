@@ -8,7 +8,8 @@ public class Drop : MonoBehaviour
     public GameObject selectedSpriteObject;
     public int ColorIndex;
     public Vector3 targetPosition;
-    public int dropX, dropY;
+    // the name is drop already, no need to make as dropX 
+    public int x, y;
 
     private void Start()
     {

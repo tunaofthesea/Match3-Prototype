@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
-    public int tileX, tileY;
+    // no need to name it as tileX, the objects name is Tile already
+    public int x, y;
     public GameObject valve;
 
     public bool spawner;
@@ -14,8 +15,9 @@ public class Tile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        collision.GetComponent<Drop>().dropY = tileY - 1;  // drops X & Y vallues will be used in array manipulation, so we are translating matrice coordinates into array indexes.
-        collision.GetComponent<Drop>().dropX = tileX - 1;
+        // drops X & Y vallues will be used in array manipulation, so we are translating matrice coordinates into array indexes.
+        collision.GetComponent<Drop>().y = this.y - 1;
+        collision.GetComponent<Drop>().x = this.x - 1;
         isEmpty = false;
     }
 
@@ -23,14 +25,14 @@ public class Tile : MonoBehaviour
     private void OnTriggerExit2D(Collider2D collision)
     {
         isEmpty = true;
-        if(TouchContoller.instance.interactionActivated)
+        if (spawner && !TouchContoller.instance.interactionActivated)
         {
             return;
         }
 
         if (spawner)
         {
-            
+
             GameObject go = BoardGenerator.instance.PlaceDropOnTile(GetComponent<Tile>());
             StartCoroutine(MoveDrop_cor(go));
             //BoardGenerator.instance.DropMatrice[tileX - 1, tileY - 1] = go;
@@ -51,7 +53,7 @@ public class Tile : MonoBehaviour
             */
             int x = tileX - 1;
             int y = tileY - 1;
-            
+
             for (int i = 1; i <= BoardGenerator.instance.rows - tileY; i++)
             {
                 GameObject go = BoardGenerator.instance.DropMatrice[x, y + i];
@@ -63,13 +65,13 @@ public class Tile : MonoBehaviour
                     break;
                 }
             }
-            
+
             //BoardGenerator.instance.TileCheck(x, y);
         }
-        
+
         IEnumerator MoveDrop_cor(GameObject drop)
         {
-            while(drop.transform.position.y > this.transform.position.y)
+            while (drop.transform.position.y > this.transform.position.y)
             {
                 drop.transform.position = Vector2.MoveTowards(drop.transform.position, transform.position, Time.deltaTime * dropSpeed);
                 yield return null;
@@ -80,6 +82,6 @@ public class Tile : MonoBehaviour
 
     }
 
-    
+
 
 }
