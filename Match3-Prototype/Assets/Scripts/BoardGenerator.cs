@@ -29,6 +29,8 @@ public class BoardGenerator : MonoBehaviour
     public static BoardGenerator instance;
     public GameObject platformCollider;
 
+    public float dropSpeed;
+
     private void Awake()
     {
         // Singleton pattern
@@ -149,7 +151,7 @@ public class BoardGenerator : MonoBehaviour
         AssignBoardDimensions();
     }
 
-    public void PlaceDropOnTile(Tile tile)
+    public GameObject PlaceDropOnTile(Tile tile)
     {
         float tileWidth = tilePrefab.GetComponent<SpriteRenderer>().bounds.size.x;
 
@@ -157,6 +159,9 @@ public class BoardGenerator : MonoBehaviour
         go.transform.parent = tile.transform;
         go.transform.localPosition = Vector2.zero + new Vector2(0, tileWidth);
         go.GetComponent<Collider2D>().enabled = true;
+
+        return go;
+        
     }
 
     public void CheckGenTiles()
@@ -264,6 +269,7 @@ public class BoardGenerator : MonoBehaviour
 
     }
     
+    /*
     public void DropTile(Drop drop)
     {
         int summary = drop.dropX + drop.dropY + 1 - columns;  // 1 tile below
@@ -282,6 +288,43 @@ public class BoardGenerator : MonoBehaviour
             yield return null;
         }
     }
-    
+
+    public IEnumerator moveDropNextTile()
+    {
+        for (int i = 0; i < columns; i++)
+        {
+
+            yield return null;
+        }
+    }
+    */
+    public void TileCheck(int x, int y)
+    {
+        for (int i = 1; i < rows - (y + 1); i++)
+        {
+            GameObject go = DropMatrice[x, y + i];
+            if (go != null)
+            {
+                StartCoroutine(MoveDrop_cor(go));
+                DropMatrice[x, y + i] = null;
+                DropMatrice[x, y] = go;
+                break;
+            }
+        }
+    }
+
+    IEnumerator MoveDrop_cor(GameObject drop)
+    {
+        while (drop.transform.position.y > this.transform.position.y)
+        {
+            drop.transform.position = Vector2.MoveTowards(drop.transform.position, transform.position, Time.deltaTime * dropSpeed);
+            yield return null;
+        }
+        drop.transform.position = transform.position;
+
+    }
+
+
+
 }
 

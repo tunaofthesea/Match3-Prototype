@@ -228,6 +228,8 @@ public class TouchContoller : MonoBehaviour
         selectedObject.GetComponent<Drop>().selectedSpriteObject.GetComponent<SpriteRenderer>().sortingOrder = 3;
         neighbor.GetComponent<Drop>().selectedSpriteObject.GetComponent<SpriteRenderer>().sortingOrder = 2;
 
+        //selectedObject.GetComponent<Collider2D>().enabled = false;
+        //neighbor.GetComponent<Collider2D>().enabled = false;
 
         while (true)
         {
@@ -281,6 +283,9 @@ public class TouchContoller : MonoBehaviour
         {
             //BoardGenerator.instance.CheckGenTiles();
         }
+
+        //selectedObject.GetComponent<Collider2D>().enabled = false;
+        //neighbor.GetComponent<Collider2D>().enabled = false;
 
         interactionActivated = false;
 
