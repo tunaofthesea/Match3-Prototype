@@ -61,11 +61,11 @@ public class TouchContoller : MonoBehaviour
                 swipeDirection.Normalize();  // I would like to see the distance as a unit vector
 
                 // assume it is vertical at first
-                char dir = swipeDirection.y > 0 ? 'u' ; 'd';
+                char dir = swipeDirection.y > 0 ? 'u' : 'd';
 
                 // Compares the magnitudes of x and y and chooses the best swipe direction
                 if (Mathf.Abs(swipeDirection.x) > Mathf.Abs(swipeDirection.y))
-                    dir = swipeDirection.x > 0 ? 'r' ; 'l'; //change if horizontal instead
+                    dir = swipeDirection.x > 0 ? 'r' : 'l'; //change if horizontal instead
             }
         }
     }
