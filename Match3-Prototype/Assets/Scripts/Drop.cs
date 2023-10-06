@@ -7,12 +7,15 @@ public class Drop : MonoBehaviour
 {
     public GameObject[] sprites;
     public GameObject selectedSpriteObject;
+    private Animator anim;
     public int ColorIndex;
     public Vector3 targetPosition;
+    public Vector3 outsidePosition;
     public int dropX, dropY;
 
     private void Start()
     {
+        anim = GetComponent<Animator>();
         int r = Random.Range(0, 4);
         sprites[r].SetActive(true);
         selectedSpriteObject = sprites[r];
@@ -54,24 +57,18 @@ public class Drop : MonoBehaviour
             }
         }
     }
-
-    public void MoveTowardsTarget(Vector2 target)
+    public void ScaleDownAnimationTrigger()
     {
-        StartCoroutine(MoveTowardsTarget_cor(target));
-    }
+        anim.enabled = true;
+        anim.Play("Drop_Scale_Down");
 
-    IEnumerator MoveTowardsTarget_cor(Vector2 targetPosition)
-    {
-        while(true)
-        {
-            
-            yield return null;
-        }
     }
 
     public void ScaleDownAnimationEndEvent()
     {
-
+        anim.enabled = false;
+        //transform.position = outsidePosition;
+        Debug.Log("------End activated");
     }
 
 

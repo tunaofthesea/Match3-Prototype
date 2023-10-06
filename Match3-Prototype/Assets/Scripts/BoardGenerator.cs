@@ -55,6 +55,18 @@ public class BoardGenerator : MonoBehaviour
         //GenerateBoard();
     }
 
+    private void Update()
+    {
+        if(!Input.GetKey(KeyCode.Space))
+        {
+            Time.timeScale = 0;
+        }
+        else
+        {
+            Time.timeScale = 1;
+        }
+    }
+
     public void GenerateBoard()
     {
         boardParent = new GameObject("Board Parent");
@@ -277,7 +289,11 @@ public class BoardGenerator : MonoBehaviour
             foreach (GameObject drop in toDestroy)
             {
                 drop.transform.parent = dropPool.transform;
-                drop.transform.position = OutsideTopPosition();
+                //drop.transform.position = OutsideTopPosition(); // bunu silip yerine animation trigger eklemelisin
+                Vector3 outsidePosition = OutsideTopPosition();
+
+                drop.GetComponent<Drop>().outsidePosition = outsidePosition;
+                drop.GetComponent<Drop>().ScaleDownAnimationTrigger();
 
                 int x = drop.GetComponent<Drop>().dropX;
                 int y = drop.GetComponent<Drop>().dropY;
