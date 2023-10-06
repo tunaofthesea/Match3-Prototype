@@ -253,13 +253,9 @@ public class BoardGenerator : MonoBehaviour
                 int y = drop.GetComponent<Drop>().dropY;
 
                 DropMatrice[x, y] = null;
-                /*
-                if (y + 1 < rows && DropMatrice[x, y + 1] != null)
-                {
-                    DropTile(DropMatrice[x, y + 1].GetComponent<Drop>());
-                }
-                */
+
             }
+            BoardGenerator.instance.FillEmptyTiles();
             return true;
         }
         else
@@ -268,36 +264,7 @@ public class BoardGenerator : MonoBehaviour
         }
 
     }
-    
-    /*
-    public void DropTile(Drop drop)
-    {
-        int summary = drop.dropX + drop.dropY + 1 - columns;  // 1 tile below
-        if (DropMatrice[drop.dropX, drop.dropY - 1] == null)
-        {
-            StartCoroutine(MoveDrop_cor(drop.gameObject, summary));
-        }
-    }
-
-    IEnumerator MoveDrop_cor(GameObject dropGo, int summary)
-    {
-        dropGo.GetComponent<Collider2D>().enabled = false;
-        while(true)
-        {
-            dropGo.transform.position = Vector2.MoveTowards(dropGo.transform.position, Tiles[summary].transform.position, Time.deltaTime);
-            yield return null;
-        }
-    }
-
-    public IEnumerator moveDropNextTile()
-    {
-        for (int i = 0; i < columns; i++)
-        {
-
-            yield return null;
-        }
-    }
-    */
+   
     public void TileCheck(int x, int y)
     {
         for (int i = 1; i < rows - (y + 1); i++)
@@ -305,7 +272,6 @@ public class BoardGenerator : MonoBehaviour
             GameObject go = DropMatrice[x, y + i];
             if (go != null)
             {
-                StartCoroutine(MoveDrop_cor(go));
                 DropMatrice[x, y + i] = null;
                 DropMatrice[x, y] = go;
                 break;
@@ -313,17 +279,45 @@ public class BoardGenerator : MonoBehaviour
         }
     }
 
-    IEnumerator MoveDrop_cor(GameObject drop)
+    public void FillEmptyTiles()
     {
-        while (drop.transform.position.y > this.transform.position.y)
+        for (int x = 0; x < columns; x++)
         {
-            drop.transform.position = Vector2.MoveTowards(drop.transform.position, transform.position, Time.deltaTime * dropSpeed);
-            yield return null;
-        }
-        drop.transform.position = transform.position;
+            for (int y = 0; y < rows - 1; y++)  // Start from the bottom and go up, hence no need to check the topmost row
+            {
+                if (DropMatrice[x, y] == null)  // If we found an empty spot
+                {
+                    for (int aboveY = y + 1; aboveY < rows; aboveY++)  // Search the tiles above
+                    {
+                        if (DropMatrice[x, aboveY] != null)  // If we found a tile above that's not null
+                        {
+                            GameObject dropToMove = DropMatrice[x, aboveY];  // Store a reference to the drop we're moving
+                            Vector2 targetPosition = Tiles[x + (columns * y)].transform.position;
+                            DropMatrice[x, y] = dropToMove;  // Assign the moving drop to the current empty position in the matrix
+                            DropMatrice[x, aboveY] = null;  // Set the original position to null
 
+                            StartCoroutine(MoveDropToPosition(dropToMove, targetPosition));  // Start the movement coroutine
+
+                            // Update the logical position stored in the Drop component (if any)
+                            dropToMove.GetComponent<Drop>().dropX = x;
+                            dropToMove.GetComponent<Drop>().dropY = y;
+
+                            break;  // Move to the next tile
+                        }
+                    }
+                }
+            }
+        }
     }
 
+    IEnumerator MoveDropToPosition(GameObject drop, Vector2 targetPosition)
+    {
+        while ((Vector2)drop.transform.position != targetPosition)
+        {
+            drop.transform.position = Vector2.MoveTowards(drop.transform.position, targetPosition, Time.deltaTime * dropSpeed);
+            yield return null;
+        }
+    }
 
 
 }

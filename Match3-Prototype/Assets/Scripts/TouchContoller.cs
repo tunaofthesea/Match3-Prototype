@@ -281,7 +281,7 @@ public class TouchContoller : MonoBehaviour
 
         else
         {
-            //BoardGenerator.instance.CheckGenTiles();
+
         }
 
         //selectedObject.GetComponent<Collider2D>().enabled = false;
