@@ -30,10 +30,10 @@ public class Tile : MonoBehaviour
 
         if (spawner)
         {
-            
+            /*
             GameObject go = BoardGenerator.instance.PlaceDropOnTile(GetComponent<Tile>());
             StartCoroutine(MoveDrop_cor(go));
-            //BoardGenerator.instance.DropMatrice[tileX - 1, tileY - 1] = go;
+            BoardGenerator.instance.DropMatrice[tileX - 1, tileY - 1] = go; */
         }
         else
         {
