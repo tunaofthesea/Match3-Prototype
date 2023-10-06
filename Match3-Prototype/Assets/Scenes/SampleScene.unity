@@ -525,7 +525,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rows: 5
   columns: 7
-  dropNumber: 0
+  dropNumber: 100
   tilePrefab: {fileID: 6686176137684149219, guid: 8cbfdc9120556364aa47fe2016a074ca, type: 3}
   dropPrefab: {fileID: 7494655329627625940, guid: 3c930994ea4d3a843bf02a606d95bc2a, type: 3}
   GenerativeTiles: []
@@ -533,6 +533,8 @@ MonoBehaviour:
   selectedX: 0
   selectedY: 0
   platformCollider: {fileID: 1395611741}
+  dropSpeed: 4
+  coroutineNumber: 0
 --- !u!4 &952349831
 Transform:
   m_ObjectHideFlags: 0

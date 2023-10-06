@@ -31,6 +31,8 @@ public class BoardGenerator : MonoBehaviour
 
     public float dropSpeed;
 
+    public int coroutineNumber;
+
     private void Awake()
     {
         // Singleton pattern
@@ -50,6 +52,7 @@ public class BoardGenerator : MonoBehaviour
         DropMatrice = new GameObject[columns, rows];
         StartCoroutine(GenerateBoard_cor());
         GenerateDrops();
+        //GenerateBoard();
     }
 
     public void GenerateBoard()
@@ -57,18 +60,32 @@ public class BoardGenerator : MonoBehaviour
         boardParent = new GameObject("Board Parent");
         float tileWidth = tilePrefab.GetComponent<SpriteRenderer>().bounds.size.x;
 
-        float startX = -((columns * tileWidth) / 2) + (tileWidth / 2);
-        float startY = -((rows * tileWidth) / 2) + (tileWidth / 2);
+        float startX = -((rows * tileWidth) / 2) + (tileWidth / 2);
+        float startY = -((columns * tileWidth) / 2) + (tileWidth / 2);
 
-        for (int i = 0; i < rows; i++)
+        for (int i = 1; i < rows + 1; i++)
         {
-            for (int j = 0; j < columns; j++)
+            for (int j = 1; j < columns + 1; j++)
             {
                 Vector2 tilePos = new Vector2(startX + (j * tileWidth), startY + (i * tileWidth));
                 GameObject tile = Instantiate(tilePrefab, tilePos, Quaternion.identity);
+
+                tile.name = "Tile (" + j + ", " + i + ")";
+                tile.GetComponent<Tile>().tileX = j;
+                tile.GetComponent<Tile>().tileY = i;
+                if (i == rows)
+                {
+                    tile.GetComponent<Tile>().spawner = true;
+                    GenerativeTiles.Add(tile);
+                }
+                Tiles.Add(tile);
                 tile.transform.parent = boardParent.transform;
             }
         }
+        platformCollider.transform.parent = Tiles[columns / 2].transform;
+        platformCollider.transform.localPosition = Vector2.zero;
+
+        PlaceDrops();
     }
 
     IEnumerator GenerateBoard_cor()
@@ -136,6 +153,20 @@ public class BoardGenerator : MonoBehaviour
         return tempPos;
     }
 
+    void PlaceDrops()
+    {
+        for (int i = 0; i < Tiles.Count; i++)
+        {
+            GameObject go = dropPool.transform.GetChild(dropPool.transform.childCount - 1).gameObject;
+            //go.name = Tiles[i].name;
+            DropsOnBoard.Add(go);
+            go.transform.parent = Tiles[i].transform;
+            go.transform.localPosition = Vector3.zero;
+            go.GetComponent<Collider2D>().enabled = true;
+        }
+        AssignBoardDimensions();
+    }
+
     IEnumerator PlaceDrops_cor()
     {
         for (int i = 0; i < Tiles.Count; i++)
@@ -155,9 +186,10 @@ public class BoardGenerator : MonoBehaviour
     {
         float tileWidth = tilePrefab.GetComponent<SpriteRenderer>().bounds.size.x;
 
-        GameObject go = dropPool.transform.GetChild(dropPool.transform.childCount - 1).gameObject;
+        GameObject go = dropPool.transform.GetChild(0).gameObject;
         go.transform.parent = tile.transform;
-        go.transform.localPosition = Vector2.zero + new Vector2(0, tileWidth);
+        //go.transform.localPosition = Vector2.zero + new Vector2(0, tileWidth);
+        go.transform.position = tile.transform.position;
         go.GetComponent<Collider2D>().enabled = true;
 
         return go;
@@ -192,8 +224,8 @@ public class BoardGenerator : MonoBehaviour
     public bool CheckMatches()
     {
         List<GameObject> toDestroy = new List<GameObject>();
-        // Checks rows
-        for (int row = 0; row < columns; row++)
+
+        for (int row = 0; row < columns; row++)  // cHECk Rows
         {
             int count = 1;
             for (int col = 1; col < rows; col++)
@@ -216,8 +248,7 @@ public class BoardGenerator : MonoBehaviour
             }
         }
 
-        // Checks columns
-        for (int col = 0; col < rows; col++)
+        for (int col = 0; col < rows; col++) // Checks columns
         {
             int count = 1;
             for (int row = 1; row < columns; row++)
@@ -242,24 +273,24 @@ public class BoardGenerator : MonoBehaviour
 
         if (toDestroy.Count > 0)
         {
-            // Returns the used drops back into the object pool
+             // Returns the used drops back into the object pool
             foreach (GameObject drop in toDestroy)
             {
                 drop.transform.parent = dropPool.transform;
                 drop.transform.position = OutsideTopPosition();
 
-                // Coment this changes the pop wont work
                 int x = drop.GetComponent<Drop>().dropX;
                 int y = drop.GetComponent<Drop>().dropY;
 
                 DropMatrice[x, y] = null;
 
             }
-            BoardGenerator.instance.FillEmptyTiles();
+            FillAndSpawnDrops();
             return true;
         }
         else
         {
+            FillAndSpawnDrops();
             return false;
         }
 
@@ -279,30 +310,37 @@ public class BoardGenerator : MonoBehaviour
         }
     }
 
+    public void FillAndSpawnDrops()
+    {
+        SpawnDropsForEmptyTopTiles();
+
+        FillEmptyTiles();
+
+        //SpawnDropsForEmptyTopTiles();
+    }
+
     public void FillEmptyTiles()
     {
         for (int x = 0; x < columns; x++)
         {
-            for (int y = 0; y < rows - 1; y++)  // Start from the bottom and go up, hence no need to check the topmost row
+            for (int y = 0; y < rows - 1; y++)
             {
                 if (DropMatrice[x, y] == null)  // If we found an empty spot
                 {
-                    for (int aboveY = y + 1; aboveY < rows; aboveY++)  // Search the tiles above
+                    for (int upY = y + 1; upY < rows; upY++)
                     {
-                        if (DropMatrice[x, aboveY] != null)  // If we found a tile above that's not null
+                        if (DropMatrice[x, upY] != null)
                         {
-                            GameObject dropToMove = DropMatrice[x, aboveY];  // Store a reference to the drop we're moving
+                            GameObject dropToMove = DropMatrice[x, upY];
                             Vector2 targetPosition = Tiles[x + (columns * y)].transform.position;
-                            DropMatrice[x, y] = dropToMove;  // Assign the moving drop to the current empty position in the matrix
-                            DropMatrice[x, aboveY] = null;  // Set the original position to null
+                            DropMatrice[x, y] = dropToMove;
+                            DropMatrice[x, upY] = null;
 
-                            StartCoroutine(MoveDropToPosition(dropToMove, targetPosition));  // Start the movement coroutine
+                            StartCoroutine(MoveDropToPosition(dropToMove, targetPosition));
 
-                            // Update the logical position stored in the Drop component (if any)
                             dropToMove.GetComponent<Drop>().dropX = x;
                             dropToMove.GetComponent<Drop>().dropY = y;
-
-                            break;  // Move to the next tile
+                            break;
                         }
                     }
                 }
@@ -312,10 +350,51 @@ public class BoardGenerator : MonoBehaviour
 
     IEnumerator MoveDropToPosition(GameObject drop, Vector2 targetPosition)
     {
+        coroutineNumber++;
+        float speed = dropSpeed;
+        float gravity = -9.8f;
+        float verticalVelocity = 0.0f;
+
         while ((Vector2)drop.transform.position != targetPosition)
         {
-            drop.transform.position = Vector2.MoveTowards(drop.transform.position, targetPosition, Time.deltaTime * dropSpeed);
+            verticalVelocity += gravity * Time.deltaTime;
+            float newYPosition = drop.transform.position.y + verticalVelocity * Time.deltaTime;
+
+            if (newYPosition <= targetPosition.y)
+            {
+                newYPosition = targetPosition.y;
+                drop.transform.position = new Vector2(drop.transform.position.x, newYPosition);
+                break;
+            }
+
+            drop.transform.position = new Vector2(drop.transform.position.x, newYPosition);
             yield return null;
+        }
+
+        drop.transform.position = targetPosition;
+
+        coroutineNumber--;
+        if (coroutineNumber == 0)
+        {
+            CheckMatches();
+        }
+    }
+
+    public void SpawnDropsForEmptyTopTiles()
+    {
+        for (int x = 0; x < columns; x++)
+        {
+            if (DropMatrice[x, rows - 1] == null)  //  Checking the topmost row
+            {
+                GameObject topTile = Tiles[x + (columns * (rows - 1))];
+
+                GameObject spawnedDrop = PlaceDropOnTile(topTile.GetComponent<Tile>());
+
+                DropMatrice[x, rows - 1] = spawnedDrop;
+                spawnedDrop.GetComponent<Drop>().dropX = x;
+                spawnedDrop.GetComponent<Drop>().dropY = rows - 1;
+
+            }
         }
     }
 
