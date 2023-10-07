@@ -68,7 +68,13 @@ public class BoardGenerator : MonoBehaviour
         }
     }
 #endif
-
+    public void InitializeGame()
+    {
+        DropMatrice = new GameObject[columns, rows];
+        StartCoroutine(GenerateBoard_cor());
+        GenerateDrops();
+    }
+    /*
     private void Start()
     {
         DropMatrice = new GameObject[columns, rows];
@@ -76,6 +82,7 @@ public class BoardGenerator : MonoBehaviour
         GenerateDrops();
         //GenerateBoard();
     }
+    */
 
     IEnumerator GenerateBoard_cor()
     {
