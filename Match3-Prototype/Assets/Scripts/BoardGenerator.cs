@@ -38,7 +38,6 @@ public class BoardGenerator : MonoBehaviour
 
     private void Awake()
     {
-        // Singleton pattern
         if (instance == null)
         {
             instance = this;
@@ -50,6 +49,7 @@ public class BoardGenerator : MonoBehaviour
         }
     }
 
+#if UNITY_EDITOR
     private void Update()
     {
         if(Input.GetKeyDown(KeyCode.Space))
@@ -67,6 +67,7 @@ public class BoardGenerator : MonoBehaviour
                 }
         }
     }
+#endif
 
     private void Start()
     {

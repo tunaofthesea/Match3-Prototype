@@ -3,28 +3,22 @@ using System.Collections.Generic;
 using UnityEngine;
 public class AdjustCamera : MonoBehaviour
 {
-    public int matrixRows;
-    public int matrixColumns;
+    public Camera targetCamera; // Assign your camera here in the inspector
+    public int initialMatrixRows = 8; // Your initial matrix rows
+    public float initialOrthoSize = 5; // Your initial orthographic size
 
-    private float initialRatio;
-    private Camera mainCamera;
 
-    void Start()
+    private void Start()
     {
-        matrixRows = BoardGenerator.instance.rows;
-        matrixColumns = BoardGenerator.instance.columns;
-
-        mainCamera = Camera.main;
-        initialRatio = Screen.width / Screen.height;
-        AdjustCameraSize();
+        targetCamera = Camera.main;
+        int rows = BoardGenerator.instance.rows;
+        AdjustCameraSize(rows);
+    }
+    // Call this function whenever you want to adjust the camera size based on a new matrix dimension.
+    public void AdjustCameraSize(int newMatrixRows)
+    {
+        targetCamera.orthographicSize = (initialOrthoSize * newMatrixRows) / initialMatrixRows;
     }
 
-    void AdjustCameraSize()
-    {
-        float newRatio = Screen.width / Screen.height;
-
-        float baseSize = (1.25f * matrixRows) / 2;  // My initial calculation was: Camera size 5 for a 4 x 8 dimension Matrice -> 2 * 5 / 8 = 1.25. It was really late, I couldnt derive the necessary formula.
-
-        mainCamera.orthographicSize = baseSize * (initialRatio / newRatio);
-    }
 }
+    
