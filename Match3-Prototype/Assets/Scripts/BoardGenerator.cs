@@ -33,6 +33,8 @@ public class BoardGenerator : MonoBehaviour
 
     public int coroutineNumber;
 
+    public int clickCount;
+
     private void Awake()
     {
         // Singleton pattern
@@ -52,18 +54,25 @@ public class BoardGenerator : MonoBehaviour
         DropMatrice = new GameObject[columns, rows];
         StartCoroutine(GenerateBoard_cor());
         GenerateDrops();
-        //GenerateBoard();
     }
 
     private void Update()
     {
-        if(!Input.GetKey(KeyCode.Space))
+        if(Input.GetKeyDown(KeyCode.Space))
         {
-            Time.timeScale = 0;
-        }
-        else
-        {
-            Time.timeScale = 1;
+            clickCount++;
+            if(clickCount == 2)
+            {
+                clickCount = 0;
+            }
+            if (clickCount == 1)
+            {
+                Time.timeScale = 0;
+            }
+            else
+            {
+                Time.timeScale = 1;
+            }
         }
     }
 
@@ -133,6 +142,7 @@ public class BoardGenerator : MonoBehaviour
         platformCollider.transform.localPosition = Vector2.zero;
 
         StartCoroutine(PlaceDrops_cor());
+
     }
     
     
@@ -153,10 +163,9 @@ public class BoardGenerator : MonoBehaviour
             GameObject drop = Instantiate(dropPrefab, tempPos, Quaternion.identity);
             drop.transform.parent = dropPool.transform;
         }
-
     }
 
-    Vector3 OutsideTopPosition()
+    public Vector3 OutsideTopPosition()
     {
         Vector3 screenPos = new Vector3(Screen.width / 2, Screen.height, -Camera.main.transform.position.z);  // Object pool should not be spawned on the screen boundaries. 
         Vector3 worldPos = Camera.main.ScreenToWorldPoint(screenPos);
@@ -288,11 +297,9 @@ public class BoardGenerator : MonoBehaviour
              // Returns the used drops back into the object pool
             foreach (GameObject drop in toDestroy)
             {
-                drop.transform.parent = dropPool.transform;
-                //drop.transform.position = OutsideTopPosition(); // bunu silip yerine animation trigger eklemelisin
-                Vector3 outsidePosition = OutsideTopPosition();
 
-                drop.GetComponent<Drop>().outsidePosition = outsidePosition;
+                drop.transform.parent = dropPool.transform;
+                //drop.GetComponent<Drop>().outsidePosition = outsidePosition;
                 drop.GetComponent<Drop>().ScaleDownAnimationTrigger();
 
                 int x = drop.GetComponent<Drop>().dropX;

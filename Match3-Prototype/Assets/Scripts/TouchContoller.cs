@@ -189,6 +189,7 @@ public class TouchContoller : MonoBehaviour
                 {
                     GameObject value = board.DropMatrice[x, y];
                 }
+
                 catch (IndexOutOfRangeException e)
                 {
                     Debug.Log("Caught exception: " + e.Message);

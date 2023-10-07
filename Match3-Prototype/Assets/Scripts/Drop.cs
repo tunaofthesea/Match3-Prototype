@@ -36,6 +36,7 @@ public class Drop : MonoBehaviour
                 break;
         }
     }
+
     public void OnDisable()
     {
         for (int i = 0; i < sprites.Length; i++)
@@ -57,6 +58,7 @@ public class Drop : MonoBehaviour
             }
         }
     }
+
     public void ScaleDownAnimationTrigger()
     {
         anim.enabled = true;
@@ -67,14 +69,8 @@ public class Drop : MonoBehaviour
     public void ScaleDownAnimationEndEvent()
     {
         anim.enabled = false;
-        //transform.position = outsidePosition;
-        Debug.Log("------End activated");
+        transform.position = BoardGenerator.instance.OutsideTopPosition();
+        transform.localScale = Vector3.one;
     }
-
-
-        
-        
-        
-        
 
 }
