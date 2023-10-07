@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -107,6 +108,7 @@ public class BoardGenerator : MonoBehaviour
         {
             GameObject drop = Instantiate(dropPrefab, tempPos, Quaternion.identity);
             drop.transform.parent = dropPool.transform;
+            drop.name = "drop" + i;
         }
 
     }
@@ -137,14 +139,22 @@ public class BoardGenerator : MonoBehaviour
 
     public GameObject PlaceDropOnTile(Tile tile)
     {
+
         float tileWidth = tilePrefab.GetComponent<SpriteRenderer>().bounds.size.x;
 
         GameObject go = dropPool.transform.GetChild(0).gameObject;
-        go.transform.parent = tile.transform;
-        //go.transform.localPosition = Vector2.zero + new Vector2(0, tileWidth);
-        go.transform.position = tile.transform.position;
-        go.GetComponent<Collider2D>().enabled = true;
+        if (tile != null)
+        {
+            go.transform.parent = tile.transform;
+            //go.transform.localPosition = Vector2.zero + new Vector2(0, tileWidth);
+            go.transform.position = tile.transform.position;
+            //go.GetComponent<Collider2D>().enabled = true;
+        }
 
+        else
+        {
+            go.transform.parent = null;  // It will be used placeDropsOnTop script, if I dont remove it from the pool parent, the same object will be used when creating drops over the tiles
+        }
         return go;
 
     }
@@ -219,17 +229,18 @@ public class BoardGenerator : MonoBehaviour
             foreach (GameObject drop in toDestroy)
             {
                 drop.transform.parent = dropPool.transform;
-                drop.transform.position = OutsideTopPosition(); // bunu silip yerine animation trigger eklemelisin
+                //drop.transform.position = OutsideTopPosition(); // bunu silip yerine animation trigger eklemelisin
 
                 //Vector3 outsidePosition = OutsideTopPosition();
 
                 //drop.GetComponent<Drop>().outsidePosition = outsidePosition;
-                //drop.GetComponent<Drop>().ScaleDownAnimationTrigger();
+                drop.GetComponent<Drop>().ScaleDownAnimationTrigger();
 
                 int x = drop.GetComponent<Drop>().dropX;
                 int y = drop.GetComponent<Drop>().dropY;
 
                 DropMatrice[x, y] = null;
+                //drop.GetComponent<Collider2D>().enabled = false;
 
             }
             FillAndSpawnDrops();
@@ -245,7 +256,7 @@ public class BoardGenerator : MonoBehaviour
 
     public void FillAndSpawnDrops()
     {
-        SpawnDropsForEmptyTopTiles();
+        //SpawnDropsForEmptyTopTiles();
 
         FillEmptyTiles();
 
@@ -307,10 +318,15 @@ public class BoardGenerator : MonoBehaviour
         drop.transform.position = targetPosition;
 
         coroutineNumber--;
+
+        
         if (coroutineNumber == 0)
         {
-            CheckMatches();
-        }
+            if(!CheckMatches())
+            {
+                CheckAndPlace();
+            }
+        } 
     }
 
     public void SpawnDropsForEmptyTopTiles()
@@ -328,6 +344,64 @@ public class BoardGenerator : MonoBehaviour
                 spawnedDrop.GetComponent<Drop>().dropY = rows - 1;
 
             }
+        }
+    }
+
+    void CheckAndPlace()
+    {
+        for (int i = 0; i < columns; i++)
+        {
+            Debug.Log("Checking Column: " + i);
+            int countOfNull = 0;
+
+            for (int j = 0; j < rows; j++)
+            {
+                if (DropMatrice[i, j] == null)
+                {
+                    Debug.Log("Found Null at: [" + i + ", " + j + "]");
+                    countOfNull++;
+
+                    // Check if we reached the top or the next isn't null
+                    if (j == rows - 1 || DropMatrice[i, j + 1] != null)
+                    {
+                        // Place drops for the detected empty points
+                        PlaceDropsOnTop(i, countOfNull);
+
+                        // Reset countOfNull for next sequence
+                        countOfNull = 0;
+                    }
+                }
+                else if (countOfNull > 0)  // In case there were nulls before but no more
+                {
+                    // Reset countOfNull since we found a non-null item
+                    Debug.Log("Found non-null after a sequence at: [" + i + ", " + j + "]");
+                    countOfNull = 0;
+                }
+            }
+        }
+    }
+
+    void PlaceDropsOnTop(int column, int numberOfDrops)
+    {
+        float spriteWidth = dropPrefab.GetComponent<SpriteRenderer>().bounds.size.x;
+
+        // Determine the base Y position for the drop placement, from the top tile of the column
+        int topTileIndex = column + columns * (rows - 1);
+        Vector2 topTilePos = Tiles[topTileIndex].transform.position;
+
+        for (int i = 0; i < numberOfDrops; i++)
+        {
+            Debug.Log("Creating Drop " + (i + 1) + " for column: " + column);
+            // Calculate the vertical offset for each new drop
+            Vector2 newPosition = topTilePos + new Vector2(0, spriteWidth * (i + 1));
+            Vector2 targetPos = topTilePos + new Vector2(0, spriteWidth * (i + 1 - numberOfDrops));
+            // Get a drop from the pool or instantiate a new one
+            GameObject spawnedDrop = PlaceDropOnTile(null);  // Assuming the function can handle a null tile and just instantiate a drop without assigning it to a tile
+            StartCoroutine(MoveDropToPosition(spawnedDrop, targetPos));
+            // Update the drop's position
+            spawnedDrop.transform.position = newPosition;
+
+            // If you want, you can also update the DropMatrice, but since these drops haven't "landed" yet, you might want to wait until they do.
         }
     }
 

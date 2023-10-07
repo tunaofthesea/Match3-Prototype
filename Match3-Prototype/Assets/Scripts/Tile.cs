@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI.Table;
 
 public class Tile : MonoBehaviour
 {
@@ -23,14 +24,20 @@ public class Tile : MonoBehaviour
     {
         isEmpty = true;
 
+        /*
         if(TouchContoller.instance.interactionActivated)
         {
             return;
-        }
+        } */
 
         if (spawner)
         {
-
+            /*
+            GameObject spawnedDrop = BoardGenerator.instance.PlaceDropOnTile(GetComponent<Tile>());
+            Debug.Log("Spawned: " + spawnedDrop.name);
+            BoardGenerator.instance.DropMatrice[tileX - 1, tileY - 1] = spawnedDrop;
+            //isEmpty = true;
+            */
         }
 
         else

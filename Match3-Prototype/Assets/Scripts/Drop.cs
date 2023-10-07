@@ -61,7 +61,7 @@ public class Drop : MonoBehaviour
 
     public void ScaleDownAnimationTrigger()
     {
-        //anim.enabled = true;
+        anim.enabled = true;
         anim.Play("Drop_Scale_Down");
 
     }
@@ -70,7 +70,6 @@ public class Drop : MonoBehaviour
     {
         anim.enabled = false;
         transform.position = BoardGenerator.instance.OutsideTopPosition();
-        //transform.localScale = Vector3.one;
     }
 
 }
