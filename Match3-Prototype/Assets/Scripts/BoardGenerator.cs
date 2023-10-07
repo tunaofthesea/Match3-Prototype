@@ -81,8 +81,8 @@ public class BoardGenerator : MonoBehaviour
         boardParent = new GameObject("Board Parent");
         float tileWidth = tilePrefab.GetComponent<SpriteRenderer>().bounds.size.x;
 
-        float startX = -((rows * tileWidth) / 2) + (tileWidth / 2);
-        float startY = -((columns * tileWidth) / 2) + (tileWidth / 2);
+        float startX = -((columns * tileWidth) / 2) + (tileWidth / 2) - 0.8f;
+        float startY = -((rows * tileWidth) / 2) + (tileWidth / 2) - 0.8f;
 
         for (int i = 1; i < rows + 1; i++)
         {
@@ -249,18 +249,12 @@ public class BoardGenerator : MonoBehaviour
             foreach (GameObject drop in toDestroy)
             {
                 drop.transform.parent = dropPool.transform;
-                //drop.transform.position = OutsideTopPosition(); // bunu silip yerine animation trigger eklemelisin
-
-                //Vector3 outsidePosition = OutsideTopPosition();
-
-                //drop.GetComponent<Drop>().outsidePosition = outsidePosition;
                 drop.GetComponent<Drop>().ScaleDownAnimationTrigger();
 
                 int x = drop.GetComponent<Drop>().dropX;
                 int y = drop.GetComponent<Drop>().dropY;
 
                 DropMatrice[x, y] = null;
-                //drop.GetComponent<Collider2D>().enabled = false;
 
             }
             FillAndSpawnDrops();
@@ -279,7 +273,7 @@ public class BoardGenerator : MonoBehaviour
         //SpawnDropsForEmptyTopTiles();
 
         FillEmptyTiles();
-
+        CheckAndPlace();  // Added extra, didn't check If that produces a bottle neck, but fixed an issue where the top tiles won't spawn.
         //SpawnDropsForEmptyTopTiles();
     }
 
@@ -349,24 +343,6 @@ public class BoardGenerator : MonoBehaviour
         } 
     }
 
-    public void SpawnDropsForEmptyTopTiles()
-    {
-        for (int x = 0; x < columns; x++)
-        {
-            if (DropMatrice[x, rows - 1] == null)  //  Checking the topmost row
-            {
-                GameObject topTile = Tiles[x + (columns * (rows - 1))];
-
-                GameObject spawnedDrop = PlaceDropOnTile(topTile.GetComponent<Tile>());
-
-                DropMatrice[x, rows - 1] = spawnedDrop;
-                spawnedDrop.GetComponent<Drop>().dropX = x;
-                spawnedDrop.GetComponent<Drop>().dropY = rows - 1;
-
-            }
-        }
-    }
-
     public void CheckAndPlace()
     {
         for (int i = 0; i < columns; i++)
@@ -411,6 +387,11 @@ public class BoardGenerator : MonoBehaviour
         int topTileIndex = column + columns * (rows - 1);
         Vector2 topTilePos = Tiles[topTileIndex].transform.position;
 
+        if(!Tiles[topTileIndex].GetComponent<Tile>().spawner) // Checks if tile can spawn drops on top. If not returns. (Case requirement number 4)
+        {
+            return;  
+        }
+
         for (int i = 0; i < numberOfDrops; i++)
         {
             //Debug.Log("Creating Drop " + (i + 1) + " for column: " + column);
@@ -418,7 +399,7 @@ public class BoardGenerator : MonoBehaviour
             Vector2 newPosition = topTilePos + new Vector2(0, spriteWidth * (i + 1));
             Vector2 targetPos = topTilePos + new Vector2(0, spriteWidth * (i + 1 - numberOfDrops));
             // Get a drop from the pool or instantiate a new one
-            GameObject spawnedDrop = PlaceDropOnTile(null);  // Assuming the function can handle a null tile and just instantiate a drop without assigning it to a tile
+            GameObject spawnedDrop = PlaceDropOnTile(null);
             DropMatrice[column, row - (numberOfDrops - i - 1)] = spawnedDrop;
             // Update the drop's position
             spawnedDrop.transform.position = newPosition;
@@ -448,7 +429,7 @@ public class BoardGenerator : MonoBehaviour
         Debug.Log(output);
     }
 
-
+    // Matchler den sonra, elenen ve pool'a geri dönen droplar bir order olu?turdu?u için, eksik olan yerlere bu pooldan s?ra ile obje çekersem zaten matchlenmi? olan s?ralar? tekrardan ça??rm?? oluyorum.
 
 
 
