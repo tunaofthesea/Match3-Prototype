@@ -119,10 +119,12 @@ public class TouchContoller : MonoBehaviour
                 catch (IndexOutOfRangeException e)
                 {
                     Debug.Log("Caught exception: " + e.Message);
+                    StartCoroutine(SwapFailed(selectedObject, new Vector2(1, 0)));
                     break;
                 }
                 if (board.DropMatrice[x, y] == null)
                 {
+                    StartCoroutine(SwapFailed(selectedObject, new Vector2(1, 0)));
                     break;
                 }
                 neighbor = board.DropMatrice[x, y];
@@ -141,10 +143,12 @@ public class TouchContoller : MonoBehaviour
                 catch (IndexOutOfRangeException e)
                 {
                     Debug.Log("Caught exception: " + e.Message);
+                    StartCoroutine(SwapFailed(selectedObject, new Vector2(-1, 0)));
                     break;
                 }
                 if (board.DropMatrice[x, y] == null)
                 {
+                    StartCoroutine(SwapFailed(selectedObject, new Vector2(-1, 0)));
                     break;
                 }
                 neighbor = board.DropMatrice[x, y];
@@ -165,10 +169,12 @@ public class TouchContoller : MonoBehaviour
                 catch (IndexOutOfRangeException e)
                 {
                     Debug.Log("Caught exception: " + e.Message);
+                    StartCoroutine(SwapFailed(selectedObject, new Vector2(0, 1)));
                     break;
                 }
                 if (board.DropMatrice[x, y] == null)
                 {
+                    StartCoroutine(SwapFailed(selectedObject, new Vector2(0, 1)));
                     break;
                 }
                 neighbor = board.DropMatrice[x, y];
@@ -189,10 +195,12 @@ public class TouchContoller : MonoBehaviour
                 catch (IndexOutOfRangeException e)
                 {
                     Debug.Log("Caught exception: " + e.Message);
+                    StartCoroutine(SwapFailed(selectedObject, new Vector2(0, -1)));
                     break;
                 }
                 if (board.DropMatrice[x, y] == null)
                 {
+                    StartCoroutine(SwapFailed(selectedObject, new Vector2(0, -1)));
                     break;
                 }
                 neighbor = board.DropMatrice[x, y];
@@ -257,6 +265,39 @@ public class TouchContoller : MonoBehaviour
             }
             yield return null;
         }
+    }
+
+    IEnumerator SwapFailed(GameObject selected, Vector2 pos)
+    {
+        interactionActivated = true;
+        Vector2 initialPos = selected.transform.position;
+        pos = pos * 0.25f + initialPos;
+
+        while (true)
+        {
+            selected.transform.position = Vector2.MoveTowards(selected.transform.position, pos, Time.deltaTime * SwapSpeed);
+
+            if (Vector2.Distance(selected.transform.position, pos) < 0.05f)
+            {
+                selected.transform.position = pos;
+                break;
+            }
+            yield return null;
+        }
+
+        while (true)
+        {
+            selected.transform.position = Vector2.MoveTowards(selected.transform.position, initialPos, Time.deltaTime * SwapSpeed);
+
+            if (Vector2.Distance(selected.transform.position, initialPos) < 0.05f)
+            {
+                selected.transform.position = initialPos;
+                break;
+            }
+            yield return null;
+        }
+        interactionActivated = false;
+        selectedObject = null;
     }
 
     void SwapSpritesOrder(GameObject obj1, int order1, GameObject obj2, int order2)   // Takes the rendering order of the clicked drop front, to make an effectshown in the sample video 2

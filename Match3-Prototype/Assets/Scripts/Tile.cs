@@ -23,29 +23,6 @@ public class Tile : MonoBehaviour
     private void OnTriggerExit2D(Collider2D collision)
     {
         isEmpty = true;
-
-        /*
-        if(TouchContoller.instance.interactionActivated)
-        {
-            return;
-        } */
-
-        if (spawner)
-        {
-            /*
-            GameObject spawnedDrop = BoardGenerator.instance.PlaceDropOnTile(GetComponent<Tile>());
-            Debug.Log("Spawned: " + spawnedDrop.name);
-            BoardGenerator.instance.DropMatrice[tileX - 1, tileY - 1] = spawnedDrop;
-            //isEmpty = true;
-            */
-        }
-
-        else
-        {
-            
-        }
-
-
     }
 
     
