@@ -55,18 +55,6 @@ public class BoardGenerator : MonoBehaviour
         //GenerateBoard();
     }
 
-    private void Update()
-    {
-        if(!Input.GetKey(KeyCode.Space))
-        {
-            Time.timeScale = 0;
-        }
-        else
-        {
-            Time.timeScale = 1;
-        }
-    }
-
     public void GenerateBoard()
     {
         boardParent = new GameObject("Board Parent");
