@@ -57,6 +57,10 @@ public class TouchContoller : MonoBehaviour
 
             else if (Input.GetMouseButtonUp(0))
             {
+                if(selectedObject == null)
+                {
+                    return;
+                }
                 finalTouchPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
                 Vector2 swipeDirection = finalTouchPos - initialTouchPos;
@@ -225,13 +229,17 @@ public class TouchContoller : MonoBehaviour
         {
             BoardGenerator.instance.RelocateChangedDrops(neighbor, x, y);  // Sets back the initial indexes of the swapped objects 
             BoardGenerator.instance.RelocateChangedDrops(selectedObject, relocateX, relocateY);
-
             SwapSpritesOrder(selected, 2, neighbor, 3);
             yield return SwapPositions(selected, neighbor, neighborPos, initialPos);  // If no match found, initializes new Swap Position coroutine (reversed version) ad returns
         }
 
         SwapSpritesOrder(selected, 1, neighbor, 1);
         interactionActivated = false;
+
+        BoardGenerator.instance.CheckAndPlace();
+
+        selectedObject = null;
+
     }
 
     IEnumerator SwapPositions(GameObject selected, GameObject neighbor, Vector2 pos1, Vector2 pos2)  // Base function to move two adjecent drops 

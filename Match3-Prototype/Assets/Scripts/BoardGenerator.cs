@@ -34,6 +34,8 @@ public class BoardGenerator : MonoBehaviour
 
     public int coroutineNumber;
 
+    public int clickCount;
+
     private void Awake()
     {
         // Singleton pattern
@@ -45,6 +47,24 @@ public class BoardGenerator : MonoBehaviour
         else
         {
             Destroy(gameObject);
+        }
+    }
+
+    private void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.Space))
+        {
+                clickCount++;
+                if(clickCount == 1)
+                {
+                    DebugDropMatrice();
+                    Time.timeScale = 0;
+                }
+                else
+                {
+                    Time.timeScale = 1;
+                    clickCount = 0;
+                }
         }
     }
 
@@ -248,7 +268,7 @@ public class BoardGenerator : MonoBehaviour
         }
         else
         {
-            FillAndSpawnDrops();
+            //FillAndSpawnDrops();
             return false;
         }
 
@@ -347,25 +367,25 @@ public class BoardGenerator : MonoBehaviour
         }
     }
 
-    void CheckAndPlace()
+    public void CheckAndPlace()
     {
         for (int i = 0; i < columns; i++)
         {
-            Debug.Log("Checking Column: " + i);
+            //Debug.Log("Checking Column: " + i);
             int countOfNull = 0;
 
             for (int j = 0; j < rows; j++)
             {
                 if (DropMatrice[i, j] == null)
                 {
-                    Debug.Log("Found Null at: [" + i + ", " + j + "]");
+                    //Debug.Log("Found Null at: [" + i + ", " + j + "]");
                     countOfNull++;
 
                     // Check if we reached the top or the next isn't null
                     if (j == rows - 1 || DropMatrice[i, j + 1] != null)
                     {
                         // Place drops for the detected empty points
-                        PlaceDropsOnTop(i, countOfNull);
+                        PlaceDropsOnTop(i, j, countOfNull);
 
                         // Reset countOfNull for next sequence
                         countOfNull = 0;
@@ -374,14 +394,16 @@ public class BoardGenerator : MonoBehaviour
                 else if (countOfNull > 0)  // In case there were nulls before but no more
                 {
                     // Reset countOfNull since we found a non-null item
-                    Debug.Log("Found non-null after a sequence at: [" + i + ", " + j + "]");
+                    //Debug.Log("Found non-null after a sequence at: [" + i + ", " + j + "]");
                     countOfNull = 0;
                 }
             }
         }
+
+        DebugDropMatrice();
     }
 
-    void PlaceDropsOnTop(int column, int numberOfDrops)
+    void PlaceDropsOnTop(int column,int row, int numberOfDrops)
     {
         float spriteWidth = dropPrefab.GetComponent<SpriteRenderer>().bounds.size.x;
 
@@ -391,19 +413,43 @@ public class BoardGenerator : MonoBehaviour
 
         for (int i = 0; i < numberOfDrops; i++)
         {
-            Debug.Log("Creating Drop " + (i + 1) + " for column: " + column);
+            //Debug.Log("Creating Drop " + (i + 1) + " for column: " + column);
             // Calculate the vertical offset for each new drop
             Vector2 newPosition = topTilePos + new Vector2(0, spriteWidth * (i + 1));
             Vector2 targetPos = topTilePos + new Vector2(0, spriteWidth * (i + 1 - numberOfDrops));
             // Get a drop from the pool or instantiate a new one
             GameObject spawnedDrop = PlaceDropOnTile(null);  // Assuming the function can handle a null tile and just instantiate a drop without assigning it to a tile
-            StartCoroutine(MoveDropToPosition(spawnedDrop, targetPos));
+            DropMatrice[column, row - (numberOfDrops - i - 1)] = spawnedDrop;
             // Update the drop's position
             spawnedDrop.transform.position = newPosition;
 
+            StartCoroutine(MoveDropToPosition(spawnedDrop, targetPos));
             // If you want, you can also update the DropMatrice, but since these drops haven't "landed" yet, you might want to wait until they do.
         }
+
     }
+
+    void DebugDropMatrice()
+    {
+        string output = "DropMatrice content:\n";
+
+        for (int i = 0; i < columns; i++)
+        {
+            for (int j = 0; j < rows; j++)
+            {
+                if (DropMatrice[i, j] != null)
+                    output += DropMatrice[i, j].name + " ";
+                else
+                    output += "null ";
+            }
+            output += "\n";  // New line for each row
+        }
+
+        Debug.Log(output);
+    }
+
+
+
 
 
 }
