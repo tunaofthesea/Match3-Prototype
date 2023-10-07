@@ -72,4 +72,9 @@ public class Drop : MonoBehaviour
         transform.position = BoardGenerator.instance.OutsideTopPosition();
     }
 
+    public void FallDownAnimationEndEvent()
+    {
+        anim.enabled = false;
+    }
+
 }

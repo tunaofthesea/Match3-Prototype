@@ -13,6 +13,8 @@ public class Tile : MonoBehaviour
 
     public float dropSpeed;
 
+    public GameObject activator;
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         collision.GetComponent<Drop>().dropY = tileY - 1;  // drops X & Y vallues will be used in array manipulation, so we are translating matrice coordinates into array indexes.
@@ -24,7 +26,5 @@ public class Tile : MonoBehaviour
     {
         isEmpty = true;
     }
-
-    
 
 }

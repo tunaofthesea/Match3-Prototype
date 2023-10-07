@@ -105,6 +105,7 @@ public class BoardGenerator : MonoBehaviour
                 if (i == rows)
                 {
                     tile.GetComponent<Tile>().spawner = true;
+                    tile.GetComponent<Tile>().activator.SetActive(true);
                     GenerativeTiles.Add(tile);
                 }
                 Tiles.Add(tile);
@@ -332,7 +333,6 @@ public class BoardGenerator : MonoBehaviour
                 drop.transform.position = new Vector2(drop.transform.position.x, newYPosition);
                 break;
             }
-
             drop.transform.position = new Vector2(drop.transform.position.x, newYPosition);
             yield return null;
         }
@@ -348,7 +348,7 @@ public class BoardGenerator : MonoBehaviour
             {
                 CheckAndPlace();
             }
-        } 
+        }
     }
 
     public void CheckAndPlace()

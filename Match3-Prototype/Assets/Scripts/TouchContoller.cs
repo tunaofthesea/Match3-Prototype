@@ -45,9 +45,16 @@ public class TouchContoller : MonoBehaviour
 
                 if (hit.collider != null)  // Touch object detected and initial touch position is saved.
                 {
-                    Debug.Log("Clicked on " + hit.collider.gameObject.name);
-                    selectedObject = hit.collider.gameObject;
-                    initialTouchPos = hit.point;
+                    if (hit.collider.gameObject.name == "Tile Activator")
+                    {
+                        hit.collider.gameObject.GetComponent<GenTileActivator>().OnClick();
+                    }
+                    else
+                    {
+                        Debug.Log("Clicked on " + hit.collider.gameObject.name);
+                        selectedObject = hit.collider.gameObject;
+                        initialTouchPos = hit.point;
+                    }
                 }
                 else
                 {
