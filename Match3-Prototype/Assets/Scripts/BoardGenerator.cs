@@ -33,8 +33,6 @@ public class BoardGenerator : MonoBehaviour
 
     public int coroutineNumber;
 
-    public int clickCount;
-
     private void Awake()
     {
         // Singleton pattern
@@ -54,26 +52,7 @@ public class BoardGenerator : MonoBehaviour
         DropMatrice = new GameObject[columns, rows];
         StartCoroutine(GenerateBoard_cor());
         GenerateDrops();
-    }
-
-    private void Update()
-    {
-        if(Input.GetKeyDown(KeyCode.Space))
-        {
-            clickCount++;
-            if(clickCount == 2)
-            {
-                clickCount = 0;
-            }
-            if (clickCount == 1)
-            {
-                Time.timeScale = 0;
-            }
-            else
-            {
-                Time.timeScale = 1;
-            }
-        }
+        //GenerateBoard();
     }
 
     IEnumerator GenerateBoard_cor()
@@ -94,7 +73,7 @@ public class BoardGenerator : MonoBehaviour
                 tile.name = "Tile (" + j + ", " + i + ")";
                 tile.GetComponent<Tile>().tileX = j;
                 tile.GetComponent<Tile>().tileY = i;
-                if(i == rows)
+                if (i == rows)
                 {
                     tile.GetComponent<Tile>().spawner = true;
                     GenerativeTiles.Add(tile);
@@ -109,15 +88,14 @@ public class BoardGenerator : MonoBehaviour
         platformCollider.transform.localPosition = Vector2.zero;
 
         StartCoroutine(PlaceDrops_cor());
-
     }
-    
-    
+
+
     public void GenerateDrops()
     {
         dropPool = new GameObject("Drop Pool");
 
-        if(dropNumber < rows * columns)
+        if (dropNumber < rows * columns)
         {
             Debug.LogError("Warning, you have entered a number smaller than the size of the board matrice");
             dropNumber = rows * columns + (rows + columns);
@@ -130,6 +108,7 @@ public class BoardGenerator : MonoBehaviour
             GameObject drop = Instantiate(dropPrefab, tempPos, Quaternion.identity);
             drop.transform.parent = dropPool.transform;
         }
+
     }
 
     public Vector3 OutsideTopPosition()
@@ -167,8 +146,9 @@ public class BoardGenerator : MonoBehaviour
         go.GetComponent<Collider2D>().enabled = true;
 
         return go;
-        
+
     }
+
     public void AssignBoardDimensions()
     {
         for (int i = 0; i < DropsOnBoard.Count; i++)
@@ -183,11 +163,11 @@ public class BoardGenerator : MonoBehaviour
         DropMatrice[x, y] = drop;
     }
 
-    public bool CheckMatches()
+    public bool CheckMatches() 
     {
         List<GameObject> toDestroy = new List<GameObject>();
 
-        for (int row = 0; row < columns; row++)  // cHEcks Rows
+        for (int row = 0; row < columns; row++)  // cHECk Rows
         {
             int count = 1;
             for (int col = 1; col < rows; col++)
@@ -235,13 +215,15 @@ public class BoardGenerator : MonoBehaviour
 
         if (toDestroy.Count > 0)
         {
-             // Returns the used drops back into the object pool
+            // Returns the used drops back into the object pool
             foreach (GameObject drop in toDestroy)
             {
                 drop.transform.parent = dropPool.transform;
+                drop.transform.position = OutsideTopPosition(); // bunu silip yerine animation trigger eklemelisin
 
-                Vector3 outsidePosition = OutsideTopPosition();
-                drop.GetComponent<Drop>().outsidePosition = outsidePosition;
+                //Vector3 outsidePosition = OutsideTopPosition();
+
+                //drop.GetComponent<Drop>().outsidePosition = outsidePosition;
                 //drop.GetComponent<Drop>().ScaleDownAnimationTrigger();
 
                 int x = drop.GetComponent<Drop>().dropX;
@@ -260,12 +242,14 @@ public class BoardGenerator : MonoBehaviour
         }
 
     }
-   
+
     public void FillAndSpawnDrops()
     {
         SpawnDropsForEmptyTopTiles();
 
         FillEmptyTiles();
+
+        //SpawnDropsForEmptyTopTiles();
     }
 
     public void FillEmptyTiles()
