@@ -125,9 +125,6 @@ public class TouchContoller : MonoBehaviour
 
                 TrySwap(board, selectedObject, neighbor, x, y, x - 1, y);
 
-                //board.RelocateChangedDrops(selectedObject, x, y);
-                //board.RelocateChangedDrops(neighbor, x - 1, y);
-
                 break;
 
             case 'l':
@@ -150,8 +147,6 @@ public class TouchContoller : MonoBehaviour
 
                 TrySwap(board, selectedObject, neighbor, x, y, x + 1, y);
 
-                //board.RelocateChangedDrops(selectedObject, x, y);
-                //board.RelocateChangedDrops(neighbor, x + 1, y);
 
                 break;
 
@@ -175,9 +170,6 @@ public class TouchContoller : MonoBehaviour
                 neighbor = board.DropMatrice[x, y];
 
                 TrySwap(board, selectedObject, neighbor, x, y, x, y - 1);
-
-                //board.RelocateChangedDrops(selectedObject, x, y);
-                //board.RelocateChangedDrops(neighbor, x, y - 1);
 
                 break;
 
@@ -203,9 +195,6 @@ public class TouchContoller : MonoBehaviour
 
                 TrySwap(board, selectedObject, neighbor, x, y, x, y + 1);
 
-                //board.RelocateChangedDrops(selectedObject, x, y);
-                //board.RelocateChangedDrops(neighbor, x, y + 1);
-
                 break;
         }
     }
@@ -221,74 +210,51 @@ public class TouchContoller : MonoBehaviour
 
         StartCoroutine(TrySwap_cor(selected, neighbor, initialPos, neighborPos, x, y, relocateX, relocateY));
     }
-
-    IEnumerator TrySwap_cor(GameObject selected, GameObject neighbor, Vector2 initialPos, Vector2 neighborPos, int x, int y, int relocateX, int relocateY)
+    
+    IEnumerator TrySwap_cor(GameObject selected, GameObject neighbor, Vector2 initialPos, Vector2 neighborPos, int x, int y, int relocateX, int relocateY) 
     {
         interactionActivated = true;
 
-        selectedObject.GetComponent<Drop>().selectedSpriteObject.GetComponent<SpriteRenderer>().sortingOrder = 3;
-        neighbor.GetComponent<Drop>().selectedSpriteObject.GetComponent<SpriteRenderer>().sortingOrder = 2;
+        SwapSpritesOrder(selected, 3, neighbor, 2);
+        yield return SwapPositions(selected, neighbor, initialPos, neighborPos);
 
-        //selectedObject.GetComponent<Collider2D>().enabled = false;
-        //neighbor.GetComponent<Collider2D>().enabled = false;
+        BoardGenerator.instance.RelocateChangedDrops(selectedObject, x, y);  // Chanes the indees of the swapped drop objects in the DropMatrice 
+        BoardGenerator.instance.RelocateChangedDrops(neighbor, relocateX, relocateY);
 
+        if (!BoardGenerator.instance.CheckMatches())  // No matches
+        {
+            BoardGenerator.instance.RelocateChangedDrops(neighbor, x, y);  // Sets back the initial indexes of the swapped objects 
+            BoardGenerator.instance.RelocateChangedDrops(selectedObject, relocateX, relocateY);
+
+            SwapSpritesOrder(selected, 2, neighbor, 3);
+            yield return SwapPositions(selected, neighbor, neighborPos, initialPos);  // If no match found, initializes new Swap Position coroutine (reversed version) ad returns
+        }
+
+        SwapSpritesOrder(selected, 1, neighbor, 1);
+        interactionActivated = false;
+    }
+
+    IEnumerator SwapPositions(GameObject selected, GameObject neighbor, Vector2 pos1, Vector2 pos2)  // Base function to move two adjecent drops 
+    {
         while (true)
         {
-            neighbor.transform.position = Vector2.MoveTowards(neighbor.transform.position, initialPos, Time.deltaTime * SwapSpeed);
-            selected.transform.position = Vector2.MoveTowards(selected.transform.position, neighborPos, Time.deltaTime * SwapSpeed);
+            neighbor.transform.position = Vector2.MoveTowards(neighbor.transform.position, pos1, Time.deltaTime * SwapSpeed);
+            selected.transform.position = Vector2.MoveTowards(selected.transform.position, pos2, Time.deltaTime * SwapSpeed);
 
-            if(Vector2.Distance(neighbor.transform.position, initialPos) < 0.05f)
+            if (Vector2.Distance(neighbor.transform.position, pos1) < 0.05f)
             {
-                neighbor.transform.position = initialPos;
-                selected.transform.position = neighborPos;
-
-                //interactionActivated = false;
-                break;
+                neighbor.transform.position = pos1;
+                selected.transform.position = pos2;
+                yield break;
             }
             yield return null;
         }
-        selectedObject.GetComponent<Drop>().selectedSpriteObject.GetComponent<SpriteRenderer>().sortingOrder = 1;
-        neighbor.GetComponent<Drop>().selectedSpriteObject.GetComponent<SpriteRenderer>().sortingOrder = 1;
-
-        BoardGenerator.instance.RelocateChangedDrops(selectedObject, x, y);
-        BoardGenerator.instance.RelocateChangedDrops(neighbor, relocateX, relocateY);
-
-        if (!BoardGenerator.instance.CheckMatches())  // If checkMatch bool function returns false, it means there are no matches so, we revert back the change we did in the DropMatrice
-        {
-            BoardGenerator.instance.RelocateChangedDrops(neighbor, x, y);
-            BoardGenerator.instance.RelocateChangedDrops(selectedObject, relocateX, relocateY);
-
-            selectedObject.GetComponent<Drop>().selectedSpriteObject.GetComponent<SpriteRenderer>().sortingOrder = 2;
-            neighbor.GetComponent<Drop>().selectedSpriteObject.GetComponent<SpriteRenderer>().sortingOrder = 3;
-
-            while (true)
-            {
-                neighbor.transform.position = Vector2.MoveTowards(neighbor.transform.position, neighborPos, Time.deltaTime * SwapSpeed);
-                selected.transform.position = Vector2.MoveTowards(selected.transform.position, initialPos, Time.deltaTime * SwapSpeed);
-
-                if (Vector2.Distance(neighbor.transform.position, neighborPos) < 0.05f)
-                {
-                    neighbor.transform.position = neighborPos;
-                    selected.transform.position = initialPos;
-
-                    //interactionActivated = false;
-                    break;
-                }
-                yield return null;
-            }
-            selectedObject.GetComponent<Drop>().selectedSpriteObject.GetComponent<SpriteRenderer>().sortingOrder = 1;
-            neighbor.GetComponent<Drop>().selectedSpriteObject.GetComponent<SpriteRenderer>().sortingOrder = 1;
-        }
-
-        else
-        {
-            //BoardGenerator.instance.FillEmptyTiles();
-        }
-
-        //selectedObject.GetComponent<Collider2D>().enabled = false;
-        //neighbor.GetComponent<Collider2D>().enabled = false;
-
-        interactionActivated = false;
-
     }
+
+    void SwapSpritesOrder(GameObject obj1, int order1, GameObject obj2, int order2)   // Takes the rendering order of the clicked drop front, to make an effectshown in the sample video 2
+    {
+        obj1.GetComponent<Drop>().selectedSpriteObject.GetComponent<SpriteRenderer>().sortingOrder = order1;
+        obj2.GetComponent<Drop>().selectedSpriteObject.GetComponent<SpriteRenderer>().sortingOrder = order2;
+    }
+
 }

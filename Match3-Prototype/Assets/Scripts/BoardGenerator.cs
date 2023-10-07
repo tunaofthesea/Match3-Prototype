@@ -76,39 +76,6 @@ public class BoardGenerator : MonoBehaviour
         }
     }
 
-    public void GenerateBoard()
-    {
-        boardParent = new GameObject("Board Parent");
-        float tileWidth = tilePrefab.GetComponent<SpriteRenderer>().bounds.size.x;
-
-        float startX = -((rows * tileWidth) / 2) + (tileWidth / 2);
-        float startY = -((columns * tileWidth) / 2) + (tileWidth / 2);
-
-        for (int i = 1; i < rows + 1; i++)
-        {
-            for (int j = 1; j < columns + 1; j++)
-            {
-                Vector2 tilePos = new Vector2(startX + (j * tileWidth), startY + (i * tileWidth));
-                GameObject tile = Instantiate(tilePrefab, tilePos, Quaternion.identity);
-
-                tile.name = "Tile (" + j + ", " + i + ")";
-                tile.GetComponent<Tile>().tileX = j;
-                tile.GetComponent<Tile>().tileY = i;
-                if (i == rows)
-                {
-                    tile.GetComponent<Tile>().spawner = true;
-                    GenerativeTiles.Add(tile);
-                }
-                Tiles.Add(tile);
-                tile.transform.parent = boardParent.transform;
-            }
-        }
-        platformCollider.transform.parent = Tiles[columns / 2].transform;
-        platformCollider.transform.localPosition = Vector2.zero;
-
-        PlaceDrops();
-    }
-
     IEnumerator GenerateBoard_cor()
     {
         boardParent = new GameObject("Board Parent");
@@ -174,20 +141,6 @@ public class BoardGenerator : MonoBehaviour
         return tempPos;
     }
 
-    void PlaceDrops()
-    {
-        for (int i = 0; i < Tiles.Count; i++)
-        {
-            GameObject go = dropPool.transform.GetChild(dropPool.transform.childCount - 1).gameObject;
-            //go.name = Tiles[i].name;
-            DropsOnBoard.Add(go);
-            go.transform.parent = Tiles[i].transform;
-            go.transform.localPosition = Vector3.zero;
-            go.GetComponent<Collider2D>().enabled = true;
-        }
-        AssignBoardDimensions();
-    }
-
     IEnumerator PlaceDrops_cor()
     {
         for (int i = 0; i < Tiles.Count; i++)
@@ -216,18 +169,6 @@ public class BoardGenerator : MonoBehaviour
         return go;
         
     }
-
-    public void CheckGenTiles()
-    {
-        for (int i = 0; i < GenerativeTiles.Count; i++)
-        {
-            if (GenerativeTiles[i].GetComponent<Tile>().isEmpty)
-            {
-                PlaceDropOnTile(GenerativeTiles[i].GetComponent<Tile>());
-            }
-        }
-    }
-
     public void AssignBoardDimensions()
     {
         for (int i = 0; i < DropsOnBoard.Count; i++)
@@ -246,7 +187,7 @@ public class BoardGenerator : MonoBehaviour
     {
         List<GameObject> toDestroy = new List<GameObject>();
 
-        for (int row = 0; row < columns; row++)  // cHECk Rows
+        for (int row = 0; row < columns; row++)  // cHEcks Rows
         {
             int count = 1;
             for (int col = 1; col < rows; col++)
@@ -297,10 +238,11 @@ public class BoardGenerator : MonoBehaviour
              // Returns the used drops back into the object pool
             foreach (GameObject drop in toDestroy)
             {
-
                 drop.transform.parent = dropPool.transform;
-                //drop.GetComponent<Drop>().outsidePosition = outsidePosition;
-                drop.GetComponent<Drop>().ScaleDownAnimationTrigger();
+
+                Vector3 outsidePosition = OutsideTopPosition();
+                drop.GetComponent<Drop>().outsidePosition = outsidePosition;
+                //drop.GetComponent<Drop>().ScaleDownAnimationTrigger();
 
                 int x = drop.GetComponent<Drop>().dropX;
                 int y = drop.GetComponent<Drop>().dropY;
@@ -319,27 +261,11 @@ public class BoardGenerator : MonoBehaviour
 
     }
    
-    public void TileCheck(int x, int y)
-    {
-        for (int i = 1; i < rows - (y + 1); i++)
-        {
-            GameObject go = DropMatrice[x, y + i];
-            if (go != null)
-            {
-                DropMatrice[x, y + i] = null;
-                DropMatrice[x, y] = go;
-                break;
-            }
-        }
-    }
-
     public void FillAndSpawnDrops()
     {
         SpawnDropsForEmptyTopTiles();
 
         FillEmptyTiles();
-
-        //SpawnDropsForEmptyTopTiles();
     }
 
     public void FillEmptyTiles()
