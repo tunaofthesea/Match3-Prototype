@@ -20,11 +20,20 @@ public class UIManager : MonoBehaviour
     public GameObject[] objectsToDisable;
     public GameObject[] objectsToEnable;
 
+    public GameObject Agave;
+
     public void ScrollValueChange(Scrollbar scrollBar)
     {
         int step = Mathf.FloorToInt(scrollBar.numberOfSteps * scrollBar.value);
         step = (step == scrollBar.numberOfSteps) ? step : step + 1;
         scrollBar.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = step.ToString();
+
+        ResizeAgave(Convert.ToInt32(rowNumberText.text), Convert.ToInt32(columnNumberText.text));
+    }
+
+    public void ResizeAgave(float x, float y)
+    {
+        Agave.GetComponent<RectTransform>().localScale = (x * y / 32f) * Vector3.one;
     }
 
    int DimensionInt(TextMeshProUGUI text)
