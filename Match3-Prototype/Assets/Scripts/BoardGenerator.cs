@@ -34,14 +34,16 @@ public class BoardGenerator : MonoBehaviour
 
     public int coroutineNumber;
 
-    public int clickCount;
+    private int clickCount;
+
+    public bool dropping;
 
     private void Awake()
     {
         if (instance == null)
         {
             instance = this;
-            DontDestroyOnLoad(gameObject);
+            //DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -74,6 +76,7 @@ public class BoardGenerator : MonoBehaviour
         StartCoroutine(GenerateBoard_cor());
         GenerateDrops();
     }
+
     /*
     private void Start()
     {
@@ -83,7 +86,10 @@ public class BoardGenerator : MonoBehaviour
         //GenerateBoard();
     }
     */
+    void CheckMatriceAtStart()
+    {
 
+    }
     IEnumerator GenerateBoard_cor()
     {
         boardParent = new GameObject("Board Parent");
@@ -195,6 +201,8 @@ public class BoardGenerator : MonoBehaviour
             //Debug.Log(i);
             DropMatrice[DropsOnBoard[i].GetComponent<Drop>().dropX, DropsOnBoard[i].GetComponent<Drop>().dropY] = DropsOnBoard[i];
         }
+
+        MatchChecker.instance.CheckMatches(DropMatrice);
     }
 
     public void RelocateChangedDrops(GameObject drop, int x, int y)
@@ -206,7 +214,7 @@ public class BoardGenerator : MonoBehaviour
     {
         List<GameObject> toDestroy = new List<GameObject>();
 
-        for (int row = 0; row < columns; row++)  // cHECk Rows
+        for (int row = 0; row < columns; row++)
         {
             int count = 1;
             for (int col = 1; col < rows; col++)
@@ -229,7 +237,7 @@ public class BoardGenerator : MonoBehaviour
             }
         }
 
-        for (int col = 0; col < rows; col++) // Checks columns
+        for (int col = 0; col < rows; col++)
         {
             int count = 1;
             for (int row = 1; row < columns; row++)
@@ -254,8 +262,8 @@ public class BoardGenerator : MonoBehaviour
 
         if (toDestroy.Count > 0)
         {
-            // Returns the used drops back into the object pool
-            foreach (GameObject drop in toDestroy)
+
+            foreach (GameObject drop in toDestroy)   // Returns the used drops back into the object pool
             {
                 drop.transform.parent = dropPool.transform;
                 drop.GetComponent<Drop>().ScaleDownAnimationTrigger();
@@ -282,7 +290,8 @@ public class BoardGenerator : MonoBehaviour
         //SpawnDropsForEmptyTopTiles();
 
         FillEmptyTiles();
-        CheckAndPlace();  // Added extra, didn't check If that produces a bottle neck, but fixed an issue where the top tiles won't spawn.
+        CheckAndPlace();  // Added extra, didn't check If that produces a bottle neck, but fixed an issue where the top tiles won't spawn new drops.
+
         //SpawnDropsForEmptyTopTiles();
     }
 
@@ -317,6 +326,7 @@ public class BoardGenerator : MonoBehaviour
 
     IEnumerator MoveDropToPosition(GameObject drop, Vector2 targetPosition)
     {
+        dropping = true;
         coroutineNumber++;
         float speed = dropSpeed;
         float gravity = -9.8f;
@@ -348,6 +358,7 @@ public class BoardGenerator : MonoBehaviour
             {
                 CheckAndPlace();
             }
+            dropping = false;
         }
     }
 
@@ -365,19 +376,15 @@ public class BoardGenerator : MonoBehaviour
                     //Debug.Log("Found Null at: [" + i + ", " + j + "]");
                     countOfNull++;
 
-                    // Check if we reached the top or the next isn't null
-                    if (j == rows - 1 || DropMatrice[i, j + 1] != null)
+                    if (j == rows - 1 || DropMatrice[i, j + 1] != null) // Check if I reached the top or the next isn't null
                     {
-                        // Place drops for the detected empty points
                         PlaceDropsOnTop(i, j, countOfNull);
 
-                        // Reset countOfNull for next sequence
                         countOfNull = 0;
                     }
                 }
-                else if (countOfNull > 0)  // In case there were nulls before but no more
+                else if (countOfNull > 0)
                 {
-                    // Reset countOfNull since we found a non-null item
                     //Debug.Log("Found non-null after a sequence at: [" + i + ", " + j + "]");
                     countOfNull = 0;
                 }
@@ -391,8 +398,7 @@ public class BoardGenerator : MonoBehaviour
     {
         float spriteWidth = dropPrefab.GetComponent<SpriteRenderer>().bounds.size.x;
 
-        // Determine the base Y position for the drop placement, from the top tile of the column
-        int topTileIndex = column + columns * (rows - 1);
+        int topTileIndex = column + columns * (rows - 1);         // Determine the base Y position for the drop placement, from the top tile of the column
         Vector2 topTilePos = Tiles[topTileIndex].transform.position;
 
         if(!Tiles[topTileIndex].GetComponent<Tile>().spawner) // Checks if tile can spawn drops on top. If not returns. (Case requirement number 4)
@@ -403,17 +409,16 @@ public class BoardGenerator : MonoBehaviour
         for (int i = 0; i < numberOfDrops; i++)
         {
             //Debug.Log("Creating Drop " + (i + 1) + " for column: " + column);
-            // Calculate the vertical offset for each new drop
             Vector2 newPosition = topTilePos + new Vector2(0, spriteWidth * (i + 1));
-            Vector2 targetPos = topTilePos + new Vector2(0, spriteWidth * (i + 1 - numberOfDrops));
-            // Get a drop from the pool or instantiate a new one
-            GameObject spawnedDrop = PlaceDropOnTile(null);
+            Vector2 targetPos = topTilePos + new Vector2(0, spriteWidth * (i + 1 - numberOfDrops));  // I am calculating the target tile location, because getting the Tiles[index] is costy at this point
+
+            GameObject spawnedDrop = PlaceDropOnTile(null);    // Get a drop from the pool or instantiate a new one
+            spawnedDrop.GetComponent<Drop>().AssignRandomShape();  // Reassigns a random shape 
             DropMatrice[column, row - (numberOfDrops - i - 1)] = spawnedDrop;
-            // Update the drop's position
+
             spawnedDrop.transform.position = newPosition;
 
             StartCoroutine(MoveDropToPosition(spawnedDrop, targetPos));
-            // If you want, you can also update the DropMatrice, but since these drops haven't "landed" yet, you might want to wait until they do.
         }
 
     }
@@ -431,7 +436,7 @@ public class BoardGenerator : MonoBehaviour
                 else
                     output += "null ";
             }
-            output += "\n";  // New line for each row
+            output += "\n";
         }
 
         Debug.Log(output);

@@ -21,14 +21,17 @@ public class AdjustCamera : MonoBehaviour
         int rows = BoardGenerator.instance.rows;
         int columns = BoardGenerator.instance.columns;
 
-        int maxSize = (rows > columns) ? rows : columns;
+        int maxSize = (rows > columns) ? rows : columns;  // TErnary opreator checks rows and columns number and sets the camera distance according to the bigger value. Still needs some work, I can also check the base/new screen boundaries and resize it with another function. 
 
         AdjustCameraSize(maxSize);
     }
-    // Call this function whenever you want to adjust the camera size based on a new matrix dimension.
     public void AdjustCameraSize(int newMatrixRows)
     {
         targetCamera.orthographicSize = (initialOrthoSize * newMatrixRows) / initialMatrixRows;
+        if(targetCamera.orthographicSize < initialOrthoSize)
+        {
+            targetCamera.orthographicSize = initialOrthoSize - 1;
+        }
     }
 
 }

@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System;
+using UnityEngine.SceneManagement;
 
 public class UIManager : MonoBehaviour
 {
@@ -14,8 +15,10 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI columnNumberText;
 
     public Button GenerateButton;
+    public GameObject ReloadButton;
 
-    public Canvas gameCanvas;
+    public GameObject[] objectsToDisable;
+    public GameObject[] objectsToEnable;
 
     public void ScrollValueChange(Scrollbar scrollBar)
     {
@@ -43,6 +46,26 @@ public class UIManager : MonoBehaviour
 
     public void DisableElements()
     {
-        gameCanvas.gameObject.SetActive(false);
+        for (int i = 0; i < objectsToDisable.Length; i++)
+        {
+            objectsToDisable[i].SetActive(false);
+        }
+
+        for (int i = 0; i < objectsToEnable.Length; i++)
+        {
+            objectsToEnable[i].SetActive(true);
+        }
+    }
+
+    public void ReloadTheScene()
+    {
+        ReloadButton.GetComponent<Button>().enabled = false;
+        StartCoroutine(LateReload_cor());
+    }
+
+    IEnumerator LateReload_cor()
+    {
+        yield return new WaitForSeconds(0.25f);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }

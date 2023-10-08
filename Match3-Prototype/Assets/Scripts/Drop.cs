@@ -16,11 +16,19 @@ public class Drop : MonoBehaviour
     private void Start()
     {
         anim = GetComponent<Animator>();
-        int r = Random.Range(0, 4);
-        sprites[r].SetActive(true);
-        selectedSpriteObject = sprites[r];
+        AssignRandomShape();
+    }
 
-        switch (r)  // Dont forget to turn this logic into board generation 
+    public void AssignRandomShape()
+    {
+        for (int i = 0; i < sprites.Length; i++)
+        {
+            sprites[i].SetActive(false);
+        }
+
+        int r = Random.Range(0, 4);
+
+        switch (r)  // !!Dont forget to turn this logic into board generation!! 
         {
             case 0:
                 this.tag = "Red";
@@ -33,6 +41,37 @@ public class Drop : MonoBehaviour
                 break;
             case 3:
                 this.tag = "Green";
+                break;
+        }
+
+        sprites[r].SetActive(true);
+
+        selectedSpriteObject = sprites[r];
+    }
+
+    public void RematchShape(string tag)
+    {
+        for (int i = 0; i < sprites.Length; i++)
+        {
+            sprites[i].SetActive(false);
+        }
+        switch (tag)
+        {
+            case "Red":
+                sprites[0].SetActive(true);
+                selectedSpriteObject = sprites[0];
+                break;
+            case "Yellow":
+                sprites[1].SetActive(true);
+                selectedSpriteObject = sprites[1];
+                break;
+            case "Blue":
+                sprites[2].SetActive(true);
+                selectedSpriteObject = sprites[2];
+                break;
+            case "Green":
+                sprites[3].SetActive(true);
+                selectedSpriteObject = sprites[3];
                 break;
         }
     }
