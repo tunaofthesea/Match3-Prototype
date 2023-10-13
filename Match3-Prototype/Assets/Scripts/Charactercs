@@ -1,0 +1,30 @@
+
+
+public class Character : MonoBehavior
+{
+    IAttack attack;
+    skill()
+    inventory()
+    animation()
+}
+
+
+{
+    public Character Create(CharacterType type)
+    {
+        switch (type)
+        {
+            case CharacterType.Ghost:
+                NoInventory no = new NoInventory();
+                return new Character(
+                            no
+                )
+
+                break
+         }
+    }
+}
+
+// types :  GreekGod, Lizard, Ghost
+CharacterFactory characterFactory = new CharacterFactory();
+Character character = characterFactory.Create(GreekGod);
