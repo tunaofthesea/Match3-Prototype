@@ -47,7 +47,7 @@ public class BoardGenerator : MonoBehaviour
     {
         int getMinMatchNumber()
         {
-            return 3;
+            return minMatch;
         }
         MatchResult FindMatches(Vector2 point)
         {
