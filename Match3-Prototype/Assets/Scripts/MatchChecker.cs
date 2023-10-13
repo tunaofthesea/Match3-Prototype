@@ -2,94 +2,114 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MatchChecker : MonoBehaviour
+public struct MatchResult
 {
-    private string[] dropTags = { "Red", "Yellow", "Green", "Blue" };
-    public static MatchChecker instance;
-    private void Awake()
+    List<Vector2> matches;
+    bool hasEnoughMatches;
+}
+public interface IMatchChecker
+{
+    MatchResult FindMatches(GameObject go, Vector2 point);
+    int getMinMatchNumber();
+}
+public class ThreeHorizontalMatchChecker : IMatchChecker
+{
+    public static final int minMatchNumber = 3;
+    int getMinMatchNumber()
     {
-        if (instance == null)
+        return this.minMatchNumber;
+    }
+    MatchResult FindMatches(Vector2 point)
+    {
+        List<GameObject> matches = new List<GameObject>(point);
+        // Check vertical 
+        // go left
+        int col, row = point.x, point.y;
+        int l, r = col, col;
+        // move left as long as the left tile is the same as that of original position 
+        while (l > 0 && DropMatrice[row, l - 1] != null && DropMatrice[row, col].tag == DropMatrice[row, l - 1].tag)
         {
-            instance = this;
-            //DontDestroyOnLoad(gameObject);
+            l--;
+            matches.Add(DropMatrice[row, l]);
         }
-        else
+        // move left as long as the right tile is the same as that of original position 
+        while (r < columns - 1 && DropMatrice[row, r + 1] != null && DropMatrice[row, col].tag == DropMatrice[row, r + 1].tag)
         {
-            Destroy(gameObject);
+            r++;
+            matches.Add(DropMatrice[row, r]);
         }
+        bool hasEnoughMatches = matches.length() >= this.minMatchNumber;
+        return MatchResult(
+            matches: matches,
+            hasEnoughMatches: hasEnoughMatches
+        )
     }
 
+    public void ChangeDirection(Vector2 vector2) { }
+}
 
-    public void CheckMatches(GameObject[,] matrix) // Sadly, the improved matching method I've been working on didn't make it in time, but I want to update it as soon as I finish!
+partial public class MatchingGame : MonoBehavior
+{
+    private IMatchChecker matchChecker;
+    private IDestroyer destroyer;
+    private ISpawner spawner;
+    private IMoveAnimator moveAnimator; // moveAnimator.BlowSwipeTiles(), moveAnimator.RejectSwipe(), moveAnimator.DropEffect(), moveAnimator.Win() ;
+    private IDimensionalSpace dimensionalSpace;
+
+    public void PerformSwipeMechanics(Vector2 point)
     {
+        MatchResult matchResult = this.matchChecker.FindMatches(this.matrix, point);
+        if (matchResult.hasEnoughMatches)
         {
-            bool foundMatch = false;
-
-            for (int row = 0; row < matrix.GetLength(0); row++)
-            {
-                for (int col = 0; col < matrix.GetLength(1); col++)
-                {
-                    GameObject currentGO = matrix[row, col];
-
-                    int matchCount = CheckDirection(matrix, row, col, 0, 1);
-                    if (matchCount >= 3)
-                    {
-                        foundMatch = true;
-                        for (int i = 0; i < matchCount; i++)
-                        {
-                            ChangeTag(matrix[row, col + i]);
-                        }
-                    }
-
-                    matchCount = CheckDirection(matrix, row, col, 1, 0);
-                    if (matchCount >= 3)
-                    {
-                        foundMatch = true;
-                        for (int i = 0; i < matchCount; i++)
-                        {
-                            ChangeTag(matrix[row + i, col]);
-                        }
-                    }
-                }
-            }
-
-            if (foundMatch)
-            {
-                CheckMatches(matrix);
-            }
+            // animate
+            // destroy
+            this.destroyer.Destroy(matchResult.matches);
+            this.spawner.Spawn();
         }
-    }
-
-    private int CheckDirection(GameObject[,] matrix, int startRow, int startCol, int rowStep, int colStep)
-    {
-        int matched = 1;
-        int row = startRow + rowStep;
-        int col = startCol + colStep;
-        string initialTag = matrix[startRow, startCol].tag;
-
-        while (row >= 0 && row < matrix.GetLength(0) && col >= 0 && col < matrix.GetLength(1) && matrix[row, col].tag == initialTag)
-        {
-            matched++;
-            row += rowStep;
-            col += colStep;
-        }
-
-        return matched;
-    }
-
-    private void ChangeTag(GameObject go)
-    {
-        string currentTag = go.tag;
-        string newTag = GetNewTag(currentTag);
-        go.tag = newTag;
-        go.GetComponent<Drop>().RematchShape(go.tag);
-    }
-
-    private string GetNewTag(string currentTag)
-    {
-        List<string> otherTags = new List<string>(dropTags);
-        otherTags.Remove(currentTag);
-        int randomIndex = Random.Range(0, otherTags.Count);
-        return otherTags[randomIndex];
     }
 }
+
+public class MatchingGameBuilder
+{
+    partial public class MatchingGame : MonoBehavior
+    {
+    }
+    private MatchingGame matchingGame;
+
+    public MatchingGameBuilder()
+    {
+        this.matchingGame = new MatchingGame();
+        this.matchingGame.matchChecker = new ThreeHorizontalMatchChecker();
+        // ...
+    }
+
+    public MatchingGameBuilder WithMatchChecker(IMatchChecker matchChecker)
+    {
+        this.matchingGame.matchChecker = matchChecker;
+        return this;
+    }
+    public MatchingGameBuilder WithDestroyer(IDestroyer destroyer)
+    {
+        this.matchingGame.destroyer = destroyer;
+        return this;
+    }
+
+    public MatchingGameBuilder WithDimensionalSpace(IDimensionalSpace dimensionalSpace)
+    {
+        this.matchingGame.dimensionalSpace = dimensionalSpace;
+        return this;
+    }
+
+    public MatchingGame Create()
+    {
+        return this.matchingGame;
+    }
+}
+
+MatchingGameBuilder builder = new MatchingGameBuilder();
+Three4NeighborMatcher match = Three4NeighborMatcher();
+Destroyer destroyer = new DoesNotDestroy();
+MatchingGame matchingGame = builder
+                    .WithMatchChecker(Three4NeighborMatcher)
+                    .WithDestroyer(destroyer)
+                    .Create();
