@@ -44,7 +44,9 @@ public class BoardGenerator : MonoBehaviour
     { }
 
     public class ThreeMatched : IMatchChecker
-    {
+{
+
+public static final int minMatch = 3;
         int getMinMatchNumber()
         {
             return minMatch;
