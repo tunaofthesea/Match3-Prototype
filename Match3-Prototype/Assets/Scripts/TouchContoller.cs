@@ -48,7 +48,7 @@ public class TouchContoller : MonoBehaviour
 
             if (hit.collider != null)  // Touch object detected and initial touch position is saved.
             {
-                if (hit.collider.gameObject.name == "Tile Activator")
+                if (hit.collider.gameObject.name == "Tile Activator") // IMPORTANT: You can implement an Interafce called Iclickable and call it in the TileActivator or Drop scripts.
                 {
                     hit.collider.gameObject.GetComponent<GenTileActivator>().OnClick();  // I am checking if the collision objects was a Generation Tile Activator (Activator enables or disables new drops on top of that tile)
                 }
