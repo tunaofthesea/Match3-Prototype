@@ -38,11 +38,49 @@ public class BoardGenerator : MonoBehaviour
 
     public bool dropping;
 
+
+
+    public class NoAnimation : IMoveAnimator
+    { }
+
+    public class ThreeMatched : IMatchChecker
+{
+
+public static final int minMatch = 3;
+        int getMinMatchNumber()
+        {
+            return minMatch;
+        }
+        MatchResult FindMatches(Vector2 point)
+        {
+            List<GameObject> matches = new List<GameObject>(point);
+            int col, row = point.x, point.y;
+            matches.Add(Vector2(row, col - 1), Vector2(row, col + 1), );
+
+            return MatchResult(
+            matches: matches,
+            hasEnoughMatches: matches.length() >= this.minMatchNumber
+        )
+    }
+    }
+
     private void Awake()
     {
         if (instance == null)
         {
-            instance = this;
+
+            MatchingGameBuilder builder = new MatchingGameBuilder();
+            Three4NeighborMatcher match = Three4NeighborMatcher();
+            DimensionalSpace fiveBySevenDimensionalSpace = new DimensionalSpace(rows, columns);
+            // Destroyer destroyer = new DoesNotDestroy();
+            NoAnimation noAnimation = new NoAnimation();
+            instance = builder
+                                // .WithMatchChecker(Three4NeighborMatcher)
+                                .WithMatchChecker(ThreeMatched)
+                                .WithDestroyer(destroyer)
+                                .WithDimensionalSpace(fiveBySevenDimensionalSpace)
+                                // .WithMoveAnimation(noAnimation)
+                                .Create();
             //DontDestroyOnLoad(gameObject);
         }
         else
@@ -210,7 +248,7 @@ public class BoardGenerator : MonoBehaviour
         DropMatrice[x, y] = drop;
     }
 
-    public bool CheckMatches() 
+    public bool CheckMatches()
     {
         List<GameObject> toDestroy = new List<GameObject>();
 
@@ -351,10 +389,10 @@ public class BoardGenerator : MonoBehaviour
 
         coroutineNumber--;
 
-        
+
         if (coroutineNumber == 0)
         {
-            if(!CheckMatches())
+            if (!CheckMatches())
             {
                 CheckAndPlace();
             }
@@ -394,16 +432,16 @@ public class BoardGenerator : MonoBehaviour
         DebugDropMatrice();
     }
 
-    void PlaceDropsOnTop(int column,int row, int numberOfDrops)
+    void PlaceDropsOnTop(int column, int row, int numberOfDrops)
     {
         float spriteWidth = dropPrefab.GetComponent<SpriteRenderer>().bounds.size.x;
 
         int topTileIndex = column + columns * (rows - 1);         // Determine the base Y position for the drop placement, from the top tile of the column
         Vector2 topTilePos = Tiles[topTileIndex].transform.position;
 
-        if(!Tiles[topTileIndex].GetComponent<Tile>().spawner) // Checks if tile can spawn drops on top. If not returns. (Case requirement number 4)
+        if (!Tiles[topTileIndex].GetComponent<Tile>().spawner) // Checks if tile can spawn drops on top. If not returns. (Case requirement number 4)
         {
-            return;  
+            return;
         }
 
         for (int i = 0; i < numberOfDrops; i++)
@@ -442,7 +480,7 @@ public class BoardGenerator : MonoBehaviour
         Debug.Log(output);
     }
 
-    // Matchler den sonra, elenen ve pool'a geri dönen droplar bir order olu?turdu?u için, eksik olan yerlere bu pooldan s?ra ile obje çekersem zaten matchlenmi? olan s?ralar? tekrardan ça??rm?? oluyorum.
+    // Matchler den sonra, elenen ve pool'a geri dï¿½nen droplar bir order olu?turdu?u iï¿½in, eksik olan yerlere bu pooldan s?ra ile obje ï¿½ekersem zaten matchlenmi? olan s?ralar? tekrardan ï¿½a??rm?? oluyorum.
 
 
 
